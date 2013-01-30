@@ -1,0 +1,3 @@
+Escherichia coli	0.5
+Mycoplasma agalactiae	0.5
+jiji	0.5
