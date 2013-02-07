@@ -1,0 +1,21 @@
+Acetobacter pasteurianus IFO 3283-01	0.5
+Brucella ceti M490/95/1	0.5
+Methanoculleus marisnigri JR1, DSM 1498	0.5
+Wolbachia sp. wUni (Muscidifurax uniraptor)	0.5
+Lactobacillus fructivorans KCTC 3543	0.5
+Legionella pneumophila Paris	0.5
+Propionibacterium freudenreichii shermanii CIRM-BIA1	0.5
+Corynebacterium aurimucosum ATCC 700975	0.5
+Chthoniobacter flavus Ellin428	0.5
+Clostridium ramosum VPI 0427, DSM 1402	0.5
+Vibrio parahaemolyticus AN-5034	0.5
+Arthrospira sp. PCC 8005	0.5
+Dehalococcoides sp. GT	0.5
+Shewanella sp. HN-41	0.5
+Synechococcus sp. RCC307	0.5
+Bacillus halodurans C-125	0.5
+Rhizobium etli Brasil 5	0.5
+Staphylococcus aureus aureus WBG10049	0.5
+Geobacter sulfurreducens KN400	0.5
+Coprobacillus sp. D7	0.5
+Lactococcus lactis cremoris SK11	0.5

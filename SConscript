@@ -58,28 +58,18 @@ Processing module 1
 Convert reference abundance file.
 """
 
-"""
-afileConverted = []
-for fileIn in Glob( sfle.d( c_pathInputAbundRef, "*.txt" ) ):
-	strBase = sfle.rebase( fileIn )
-	fileOut = sfle.d( c_pathConvertedref, strBase )
-	sfle.pipe( pE, fileIn, c_fileProgConvert, fileOut )
-	Default( fileOut )
-"""
-
-
 def funcConvert(target, source, env):
 	strT,astrSs = sfle.ts( target, source )
 	strRaw, strTaxa, strProg = astrSs[:3]
 	return (sfle.ex(["python", strProg, "-i", strRaw, "-o", strT, "-r", strTaxa]))
 
-for InputRef in Glob( sfle.d( c_pathInputAbundRef, "*.txt"  ) ):
+for InputRef in pE.Glob( sfle.d( c_pathInputAbundRef, "*.txt"  ) ):
 	Converted = sfle.d( pE, fileDirTmp, "converted" , sfle.rebase( InputRef ) )
 	Command( Converted, [InputRef, c_fileInputTaxonDir, c_fileProgConvert], funcConvert)
-	Default(Converted)
+	Default( Converted )
 
 c_path_Convertedref = sfle.d( pE, fileDirTmp, "converted" )
-print "converted_path", Glob( sfle.d( c_path_Convertedref, "*.txt" ) )
+
 """
 Processing module 2-3
 ==================
@@ -91,7 +81,8 @@ Synthesize sequencing data and generating KO gold standard file
 def funcSynLog(target, source, env):
 	strT, astrSs = sfle.ts( target, source )
 	return (sfle.ex( ["echo >", strT] ) )
-for Converted in glob.glob( sfle.d( c_path_Convertedref, "*.txt" ) ):
+
+for Converted in pE.Glob( sfle.d( c_path_Convertedref, "*.txt" ) ):
 	Logpath = sfle.d( pE, fileDirTmp, "SynSeq", "Syn_" + sfle.rebase(Converted, ".txt", ".log" ) )
 	Command( Logpath, [], funcSynLog )
 
@@ -101,7 +92,7 @@ def funcSynthSeq(target, source, env):
 	strGenome, strRef, strErrModel, strLog = astrSs[:4]
 	return (sfle.ex( ["rby_test1.py -R", strGenome, "-a", strRef, "-n", Reads_No, "-l d -m", strErrModel, "-c -q 33 -o", strT, "-p", "-u d -z", strLog] ) )
 
-for InputRef in glob.glob( sfle.d( c_path_Convertedref, "*.txt" ) ):
+for InputRef in Glob( sfle.d( c_path_Convertedref, "*.txt" ) ):
 	SynSeq = sfle.d( pE, fileDirOutput, "SynSeq", sfle.rebase( InputRef, ".txt" ) )
 	Log = sfle.d( pE, fileDirTmp, "SynSeq", "Syn_" + sfle.rebase( InputRef, ".txt", ".log" ) )
  	Command( SynSeq, [c_pathInputGenomeDir, InputRef, c_fileInputErrModel, Log], funcSynthSeq)
@@ -113,7 +104,7 @@ def funcKO(target, source, env):
 	strRef, strKO, strProg = astrSs[:3]
 	return (sfle.ex( ["python", strProg, "-i", strRef, "-k", strKO, "-o", strT] ))
 
-for InputRef in glob.glob( sfle.d( c_path_Convertedref, "*.txt" ) ):
+for InputRef in pE.Glob( sfle.d( c_path_Convertedref, "*.txt" ) ):
 	KO = sfle.d( pE, fileDirOutput, "KO", sfle.rebase( InputRef ) )
 	Command( KO, [InputRef, c_pathKO, c_fileProgKO], funcKO)
 	Default( KO )
