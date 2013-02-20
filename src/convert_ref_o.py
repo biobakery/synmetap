@@ -51,14 +51,15 @@ def search_name ( ref_path, taxon_path, out_path ):
 			else:
 				continue
 		#if no taxon found in IMG data set, write an empty converted file.
-		if conv_name_fin == '':
-			print "Taxon " + name + " does not incomplete!\n"
+		if conv_name_fin == '' and conv_name_draft == '':
+			print "Taxon " + name + " does not exist!\n"
 			f3.close()
 			os.remove(out_path)
 			f3 = open(out_path, 'w')
 			f3.close()
 			sys.exit()
+		elif conv_name_fin == '':
+			f3.write( conv_name_draft+'.fna'+'\t'+abun+'\n' )
 	f3.close()
 
-if __name__ == "__main__":
-	search_name( args.input_ref, args.ref_taxa, args.output_ref )
+search_name( args.input_ref, args.ref_taxa, args.output_ref )

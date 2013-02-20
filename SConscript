@@ -15,7 +15,7 @@ Header
 Constant and file definitions.
 """
 
-Reads_No			= "1000"
+Reads_No			= "1000000"
 
 c_pathInputGenomeDir		= "/n/CHB/data/synthetic_metagenomes/genomes"
 
