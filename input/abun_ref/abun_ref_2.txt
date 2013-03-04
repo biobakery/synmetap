@@ -1,11 +1,3 @@
-Acetobacter pasteurianus IFO 3283-01	0.5
-Methanoculleus marisnigri JR1, DSM 1498	0.5
-Legionella pneumophila Paris	0.5
-Propionibacterium freudenreichii shermanii CIRM-BIA1	0.5
-Chlorobium phaeovibrioides	0.5
-Chlamydophila abortus	0.5
-Chelativorans sp. BNC1	0.5
-Archaeoglobus profundus DSM 5631	0.5
 Hahella chejuensis KCTC 2396	0.5
 Klebsiella variicola At-22	0.5
 jj	0.5
