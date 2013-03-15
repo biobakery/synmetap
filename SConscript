@@ -28,7 +28,7 @@ c_pathInputAbundRef	= sfle.d( pE, fileDirInput, "abun_ref" )
 c_allfiles_InputAbundRef= Glob( sfle.d( c_pathInputAbundRef, "*.txt" ))
 
 #Error model
-c_pathInputErrModel	= sfle.d( pE, fileDirInput, "error_model" )
+c_pathInputErrModel	= sfle.d( fileDirInput, "error_model" )
 c_fileInputErrModel	= File(sfle.d( c_pathInputErrModel, "ill100v5_p.gzip" ))
 
 #src script
@@ -51,7 +51,6 @@ c_allfilespath_Synseq_sec	= [sfle.d( pE, c_path_Synseq, sfle.rebase( f, ".txt", 
 
 #Log file for synthetic script
 c_path_Synseq_log	= sfle.d( fileDirTmp, "Synseq" )
-
 """
 #Generate ko gold standard files
 c_path_KO		= sfle.d( pE, fileDirOutput, "KO")
@@ -66,14 +65,12 @@ Convert reference abundance file and check the genome files to filter out short 
 """
 
 for InputRef in c_allfiles_InputAbundRef:
-
 	Converted = sfle.d( pE, c_pathConvertedref, sfle.rebase( InputRef ) )
 	sfle.op( pE, c_fileProgConvert, ["-i", [InputRef], "-r", c_fileInputTaxonDir, "-o", [True, Converted]] )
 
 
 for ConvertedRef in c_allfiles_Converted:
 	Checked = sfle.d( c_pathChecked, sfle.rebase( ConvertedRef, ".txt" ) )
-	sfle.sop( pE, "mkdir -p", [[Checked]] )
 	sfle.op( pE, c_fileProgCheck, ["-i", [ConvertedRef], "-g", c_pathInputGenomeDir, "-o", [True, Checked]] )
 
 """
@@ -84,14 +81,31 @@ Synthesize sequencing data and generating KO gold standard file
 """
 
 for InputConvert in c_allfiles_Converted:
+
 	Checked_genomes = sfle.d( c_pathChecked, sfle.rebase( InputConvert, ".txt" ) )
 	Log = File( sfle.d( c_path_Synseq_log, "Syn_" + sfle.rebase( InputConvert, ".txt", ".log" ) ) )
 	SynSeq = File( sfle.d( c_path_Synseq, sfle.rebase( InputConvert, ".txt" ) ) )
+	SynSeq_fir = File( sfle.d( c_path_Synseq, sfle.rebase( InputConvert, ".txt", "_fir.fastq" ) ) )
+	SynSeq_sec = File( sfle.d( c_path_Synseq, sfle.rebase( InputConvert, ".txt", "_sec.fastq" ) ) )
+
+	sfle.sop( pE, "echo >", [[True, SynSeq_fir]] )
+	Default( SynSeq_fir )
+	sfle.sop( pE, "echo >", [[True, SynSeq_sec]] )
+	Default( SynSeq_sec )
+
+	SynSeq_bam = File( sfle.d( c_path_Synseq, sfle.rebase( InputConvert, ".txt", ".bam" ) ) )
+	Remove_log = sfle.d( pE, c_path_Synseq_log, sfle.rebase( InputConvert, ".txt", "_remove.log" ) )
+
 	#Create a dummy log file so the script can find the right path
 	sfle.sop( pE, "echo >", [[True, Log]] )
 	#Run synthetic script
-	sfle.sop( pE, "rby_test1.py", [ "-R", [Checked_genomes], "-a", [InputConvert], "-n", Reads_No, "-l", "d", "-m", c_fileInputErrModel, "-c", "-q", "33", "-o", [True,SynSeq], "-p", "-u", "d", "-z", [Log]] )
-	Default( SynSeq )
+	sfle.sop( pE, "rby_test1.py", [ "-R", [Checked_genomes], "-a", [InputConvert], "-n", Reads_No, "-l", "d", "-m", [c_fileInputErrModel], "-c", "-q", "33", "-o", [True,SynSeq], "-p", "-u", "d", "-z", [Log]] )
+
+	Depends( sfle.sop( pE, "java -jar ~/picard/FastqToSam.jar", ["F1=", [SynSeq_fir], "F2=", [SynSeq_sec], "V=Standard", "SM=GemSim", "O=", [True, SynSeq_bam]] ), SynSeq )
+	Default( SynSeq_bam )
+
+	Depends( sfle.sop( pE, "rm -f -v", [">", [True, Remove_log], [SynSeq_fir], [SynSeq_sec]] ), SynSeq_bam )
+	Default( Remove_log )
 
 #Generating gold standard files for genes
 

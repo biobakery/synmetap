@@ -1,3 +1,2 @@
 Hahella chejuensis KCTC 2396	0.5
 Klebsiella variicola At-22	0.5
-jj	0.5

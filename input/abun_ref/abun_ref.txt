@@ -2,4 +2,3 @@ Escherichia coli	0.5
 Mycoplasma agalactiae	0.5
 Pseudomonas aeruginosa	0.5
 Bacillus thuringiensis	0.5
-jj	0.5

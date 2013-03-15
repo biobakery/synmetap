@@ -75,6 +75,8 @@ def main():
 		rawGenome_path += '/'
 	if checkedGenome_path[-1]!='/':
 		checkedGenome_path += '/'
+	if not os.path.exists( checkedGenome_path ):
+		os.makedirs( checkedGenome_path )
 
 	refFile = open( args.input_ref, "r" )
 	for line in refFile:
@@ -84,8 +86,6 @@ def main():
 		input_Genome = rawGenome_path + aline[0]
 		output_Genome = checkedGenome_path + aline[0]
 		
-		print output_Genome
-		print input_Genome	
 		if aaDel == [[],[]]:
 			if not os.path.exists( output_Genome ):
 				os.symlink( input_Genome, output_Genome )
