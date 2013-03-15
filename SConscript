@@ -35,6 +35,7 @@ c_fileInputErrModel	= File(sfle.d( c_pathInputErrModel, "ill100v5_p.gzip" ))
 c_fileProgConvert	= File(sfle.d( pE, sfle.c_strDirSrc, "convert_ref.py" ))
 c_fileProgKO		= File(sfle.d( pE, sfle.c_strDirSrc, "ko_counter.py" ))
 c_fileProgCheck		= File(sfle.d( pE, sfle.c_strDirSrc, "check_contig.py"))
+c_fileProgPicard	= File(sfle.d( pE, sfle.c_strDirSrc, "FastqToSam.jar"))
 
 #Converted ref files
 c_pathConvertedref	= sfle.d( fileDirTmp, "converted" )
@@ -51,6 +52,7 @@ c_allfilespath_Synseq_sec	= [sfle.d( pE, c_path_Synseq, sfle.rebase( f, ".txt", 
 
 #Log file for synthetic script
 c_path_Synseq_log	= sfle.d( fileDirTmp, "Synseq" )
+
 """
 #Generate ko gold standard files
 c_path_KO		= sfle.d( pE, fileDirOutput, "KO")
@@ -101,13 +103,14 @@ for InputConvert in c_allfiles_Converted:
 	#Run synthetic script
 	sfle.sop( pE, "rby_test1.py", [ "-R", [Checked_genomes], "-a", [InputConvert], "-n", Reads_No, "-l", "d", "-m", [c_fileInputErrModel], "-c", "-q", "33", "-o", [True,SynSeq], "-p", "-u", "d", "-z", [Log]] )
 
+	#Change the part after -jar to your path to FastqToSam.jar
 	Depends( sfle.sop( pE, "java -jar ~/picard/FastqToSam.jar", ["F1=", [SynSeq_fir], "F2=", [SynSeq_sec], "V=Standard", "SM=GemSim", "O=", [True, SynSeq_bam]] ), SynSeq )
 	Default( SynSeq_bam )
 
 	Depends( sfle.sop( pE, "rm -f -v", [">", [True, Remove_log], [SynSeq_fir], [SynSeq_sec]] ), SynSeq_bam )
 	Default( Remove_log )
 
-#Generating gold standard files for genes
+#Generating gold standard files for pathway
 
 for InputRef in c_allfiles_Converted:
 	KO_Ref = sfle.d( pE, fileDirOutput, "KO", sfle.rebase( InputRef ) )
