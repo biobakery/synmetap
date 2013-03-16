@@ -33,7 +33,7 @@ please refering to GemSIM homepage (http://sourceforge.net/projects/gemsim/).
 We have distributed an error model file within our repository. You can find it
 in input/error_model. It is based on aligned Illumina sequencing data. More detail can be found in GemSIM paper (doi:10.1186/1471-2164-13-74).
 
-To be continued.
+To be continued...
 =========================================================================
 You can modify the number of reads generated in SConscript.
 
