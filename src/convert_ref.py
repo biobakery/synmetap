@@ -3,63 +3,64 @@
 import argparse
 import os
 import sys
-
-parser = argparse.ArgumentParser(description='Convert abun files.')
-parser.add_argument('-i',dest='input_ref',required=True)
-parser.add_argument('-o',dest='output_ref',required=True)
-parser.add_argument('-r',dest='ref_taxa',required=True)
-
-args = parser.parse_args()
+import csv
 
 def search_name ( ref_path, taxon_path, out_path ):
 	
-	f1 = open ( ref_path , 'r' )
-	f2 = open ( taxon_path , 'r' )
+	fileIn_abun = open ( ref_path , 'r' )
+	fileIn_taxa = open ( taxon_path , 'r' )
 	
-	file_name = os.path.basename( out_path )
-	path_name = os.path.dirname( out_path )
-	if not os.path.exists(path_name):
-		os.makedirs(path_name)
-	f3 = open ( out_path, 'w' )
-
-	f1_l = f1.readlines()
-	f2_l = f2.readlines()
+	out_path = os.path.abspath( out_path )
+	strOut_base = os.path.basename( out_path )
+	strOut_path = os.path.dirname( out_path )
+	if not os.path.exists( strOut_path ):
+		os.makedirs( strOut_path )
+	fileOut_abun = open ( out_path, 'w' )
 	
-	f1.close()
-	f2.close()
+	csv_in_abun = csv.reader( fileIn_abun, csv.excel_tab )
+	csv_out_abun = csv.writer( fileOut_abun, csv.excel_tab )
 	
-	for l1 in f1_l:
-		ll1 = l1.strip('\n').split('\t')
-		name = ll1[0]
-		abun = ll1[1]
-		conv_name_fin = ''
-		conv_name_draft = ''
+	for astrLine_abun in csv_in_abun:
+		if astrLine_abun:
+			strName = astrLine_abun[0]
+			dName = len( strName )
+			strAbun = astrLine_abun[1]
+			strConv_name_fin = ""
+			strConv_name_draft = ""
+			
+			fileIn_taxa.seek(0)
+			csv_in_taxa = csv.reader( fileIn_taxa, csv.excel_tab )
 
-		for l2 in f2_l:
-			ll2 = l2.strip('\n').split('\t')
-			n = len( name )
-			if len( ll2[3] ) >= n:
-				if name.lower() == ll2[3].lower()[:n] and ll2[2].lower() == 'finished': 
-					conv_name_fin = ll2[0]
-					f3.write( ll2[0]+'.fna'+'\t'+abun+'\n' )
-					break
-				if name.lower() == ll2[3].lower()[:n] and ll2[2].lower() == 'draft':
-					if conv_name_draft == '':
-						conv_name_draft = ll2[0]
-					else:
-						continue
-			else:
-				continue
-		#if no taxon found in IMG data set, write an empty converted file.
-		if conv_name_fin == '' and conv_name_draft == '':
-			print "Taxon " + name + " does not exist!\n"
-			f3.close()
-			os.remove(out_path)
-			f3 = open(out_path, 'w')
-			f3.close()
-			sys.exit()
-		elif conv_name_fin == '':
-			f3.write( conv_name_draft+'.fna'+'\t'+abun+'\n' )
-	f3.close()
+			for astrLine_taxa in csv_in_taxa:
+				strTaxaName = astrLine_taxa[3]
+				strStatus = astrLine_taxa[2]
+				strID = astrLine_taxa[0]
 
-search_name( args.input_ref, args.ref_taxa, args.output_ref )
+				if len( strTaxaName ) >= dName:
+					if strName.lower() == strTaxaName.lower()[:dName] and strStatus.lower() == 'finished': 
+						strConv_name_fin = strID + ".fna"
+						print strName + "\t=>\t" + strTaxaName + "\tIMG finished"
+						csv_out_abun.writerow( [strConv_name_fin, strAbun] )
+						break
+					if strName.lower() == strTaxaName.lower()[:dName] and strStatus.lower() == 'draft' and not strConv_name_draft:
+						strConv_name_draft = strID + ".fna"
+				else:
+					continue
+			#if no taxon found in IMG data set, write an empty converted file.
+			if strConv_name_fin == "" and strConv_name_draft == "":
+				raise Exception( "Taxon " + strName + " does not exist!" )
+			elif strConv_name_fin == "":
+				csv_out_abun.writerow( [strConv_name_draft, strAbun] )
+				print strName + "\t=>\t" + strTaxaName + "\tIMG draft"
+
+def _main():
+	parser = argparse.ArgumentParser(description='Convert abun files to GemSIM compatible format.')
+	parser.add_argument('-i', metavar="input_abund_file", dest='input_ref', required=True, help="input relative abundance file")
+	parser.add_argument('-o', metavar = "output_converted_file", dest='output_ref',required=True, help="output converted GemSIM compatible file")
+	parser.add_argument('-r', metavar = "input_taxa_table", dest='ref_taxa',required=True, help="input taxonomy table used to assign ID to taxon name")
+
+	args = parser.parse_args()
+	search_name( args.input_ref, args.ref_taxa, args.output_ref )
+
+if __name__ == "__main__":
+	_main()
