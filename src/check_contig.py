@@ -3,30 +3,45 @@
 import re
 import sys
 import os
-import bisect
+import csv
 import argparse
+import os, errno
 
-def short_header_line( fileIn ):
-	line_index = 0
-	hashIndex = {}
-	head = 0
-	for strLine in fileIn:
-		line_index += 1
-		if re.search( r'^>', strLine ):
-			if head == 0:
-				head = line_index
+def del_short_contig( fileIn, fileOut ):
+	dline = 0
+	dhead = 0
+	dshort = 0
+	astrline_cache = []
+		
+	csv_fasta_in = csv.reader( fileIn, csv.excel_tab )
+	csv_fasta_out = csv.reader( fileOut, csv.excel_tab )
+
+	for astrLine in csv_fasta_in:
+		dline += 1
+		if re.search( r'^>', astrLine[0] ):
+			if dhead == 0:
+				dhead = dline
 			else:
-				if line_index - head - 2 < 15:
-					hashIndex[head] = line_index - 1
-				head = line_index
-	if line_index - head - 2 < 15:
-		hashIndex[head] = line_index
-	return hashIndex
+				if dline - dhead - 2 >= 15:
+					csv_fasta_out.writerows( astrLine_cache )
+				else:
+					dshort += 1
+				dhead = dline
+			astrline_cache = astrLine
+	if dline - dhead - 2 >= 15:
+		csv_fasta_out.writerows( astrLine_cache )
+	else:
+		dshort += 1
 
+	return dshort
+"""
 def contig_pick( hashIndex ):
-	
+
+	#start line number for short contig. 1 based
 	aRetS = []
+	#end line number for short contig. 1 based
 	aRetE = []
+
 	for key in hashIndex.keys():
 		aRetS += [key]
 	aRetS = sorted(aRetS)
@@ -35,29 +50,31 @@ def contig_pick( hashIndex ):
 
 def contig_copy( genome_in, genome_out, aaDel ):
 	
+	#aaDel is [aRetS, aRetE]
 	aStart = aaDel[0]
 	aEnd = aaDel[1]
 
 	line_num = 0
-	genome_file_in = open( genome_in, "r" )
-	genome_file_out = open( genome_out, "w" )
+	try:
+		genome_file_in = open( genome_in, "r" )
+	except IOError:
+		print "Cannot open input genome fasta file."
+	try:
+		genome_file_out = open( genome_out, "w" )
+	except IOError:
+		print "Cannot access output genome fasta file."
 
-	#print "copy called!"
-	#print aaDel
 	for line in genome_file_in:
 		line_num += 1
 		line_pointer = bisect.bisect( aStart, line_num ) - 1 if line_num<= aStart[-1] else len( aStart ) - 1
-		#print line_pointer
-		#print line_num
-		#print aEnd[line_pointer]
 		if line_pointer < 0 or line_num > aEnd[line_pointer]:
-			#print line
 			genome_file_out.write( line )
 	
 	genome_file_in.close()
 	genome_file_out.close()
+"""
 			
-def main():
+def _main():
 	#needed input: input files from the converted step(call it input_ref). Path to the raw genomes(rawGenome_path), path to the checked genome(checkedGenome_path)
 	#input_ref should be the full path for the reference file
 	#Use argparser.
@@ -78,19 +95,26 @@ def main():
 	if not os.path.exists( checkedGenome_path ):
 		os.makedirs( checkedGenome_path )
 
-	refFile = open( args.input_ref, "r" )
-	for line in refFile:
-		aline = line.strip().split("\t")
-		hashLine = short_header_line( open( rawGenome_path+aline[0], "r" ) )
-		aaDel = contig_pick( hashLine )
-		input_Genome = rawGenome_path + aline[0]
-		output_Genome = checkedGenome_path + aline[0]
+	try:
+		refFile = open( args.input_ref, "r" )
+	except IOError:
+		print "Cannot open input converted abundance file!"
+
+	csv_ref_in = csv.reader( refFile, csv.excel_tab )	
+
+	for astrLine in csv_ref_in:
 		
-		if aaDel == [[],[]]:
-			if not os.path.exists( output_Genome ):
-				os.symlink( input_Genome, output_Genome )
-		else:
-			contig_copy( input_Genome, output_Genome, aaDel )
+		strinput_Genome = rawGenome_path + astrLine[0]
+		stroutput_Genome = checkedGenome_path + astrLine[0]
+
+		dShort = del_short_contig( open( strinput_Genome, "r" ), open( stroutput_Genome, "w"  ) )
+		if dShort == 0:
+			try:
+				os.symlink( strinput_Genome, stroutput_Genome )
+			except OSError, e:
+				if e.errno == errno.EEXIST:
+					os.remove( stroutput_Genome )
+					os.symlink( strinput_Genome, stroutput_Genome )
 	
 if __name__ == "__main__":
-	main()
+	_main()
