@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse
+import csv
 
 parser = argparse.ArgumentParser(description='Count ko annotations.')
 parser.add_argument('-i',dest='input_ref',required=True)
@@ -10,77 +11,74 @@ parser.add_argument('-k',dest='ko_path',required=True)
 args = parser.parse_args()
 
 #count copy numbers of genes in specific bugs
-def add_ko( ko, ko_dict ):
-        if ko in ko_dict:
-                ko_dict[ko] = ko_dict[ko] + 1
-        else:
-                ko_dict[ko] = 1
-	return ko_dict
+def add_ko( strKo, hashKo ):
+	hashKo[strKo] = 1 + hashKo.get( strKo, 0 )
+	return hashKo
 
 #generate final normalized gene abundance
 def ko_counter( ref_path, ko_path, out_path ):
 	#ref_path: path for bugs abundance files
-	f1 = open( ref_path, 'r' )
-	f2 = open( out_path, 'w' )
-	
-	f1_l = f1.readlines()
-	if f1_l == []:
-		f2.write('Raw input ref files contain non-IMG taxa.\n')
-		f2.close()
-		return
-	f1.close()
+	try:
+		fileIn_ref = open( ref_path, 'r' )
+	except IOError:
+		print "Cannot open input converted abundance file."
+	try:
+		fileOut_Ko = open( out_path, 'w' )
+	except IOError:
+		print "Cannot access output KO abundance file."
 
-	#calculate total relative abundance of all bugs in one ref file
-	total_abun = 0
-	for l1 in f1_l:
-		ll1 = l1.strip('\n').split('\t')
-		total_abun = total_abun + float(ll1[1])
-	
-	#ko_dict stores final normalized genes abundance
-	ko_dict = {}
+	csv_reader_ref = csv.reader( fileIn_ref, csv.excel_tab )	
+
+	#Ko_dict stores final normalized genes abundance
+	Ko_dict = {}
+	#dKo_dict is used to normalize final result
+	dKo_overall = 0
 	#ko_path is the path of folder for img data
-	ko_path = '/' + ko_path.strip('/') + '/'
-	for l1 in f1_l:
+	if ko_path[-1] != '/':
+		ko_path = ko_path + '/'
+
+	for astrLine_ref in csv_reader_ref:
 		#ko_dict_ind stores bug-specified copy number of genes
-		ko_dict_ind = {}
+		hashKo_ind = {}
 		#ko_dict_ind_norm stores normalized bug-specified genes abundance
-		ko_dict_ind_norm = {}
-		#inner path for bug-specified ko annotation file
-		ll1 = l1.strip('\n').split('\t')
-		name = 	ll1[0].split('.')[0]
-		ko_name = name + '/' + name + '.ko.tab.txt'
-		#percentage of each bug
-		weight = float(ll1[1])/float(total_abun)
+		hashKo_ind_norm = {}
+		strBugID =  astrLine_ref[0].split('.')[0]
+		strKo_path_in = strBugID + '/' + strBugID + '.ko.tab.txt'
 		
-		ko_full_path = ko_path + ko_name
-		f3 = open( ko_full_path, 'r' )
-		f3_l = f3.readlines()
-		f3_l = f3_l[1:]
-		f3.close()
-		
-		#not sure whether this counting method is accordant with the requirement
-		for l3 in f3_l:
-			ll3 = l3.strip().split('\t')
-			if ll3[2] != '':
-				ko_dict_ind = add_ko( ll3[9], ko_dict_ind )
+		strKo_full_path = strKo_path_out + strKo_path_in
+		try:
+			fileIn_Ko = open( strKo_full_path, 'r' )
+		except IOError:
+			print "Cannot open input ko.tab.txt file."
+		csv_reader_Ko = csv.reader( fileIn_Ko, csv.excel_tab )		
+	
+		for astrLine_Ko in csv_reader_Ko:
+			if astrLine_Ko:
+				#some of ko do not have id value in the ko.tab.
+				#txt file. Whether to ignore them?
+				if astrLine_Ko[2] != '':
+					hashKo_ind = add_ko( astrLine_Ko[9].split(":")[1], hashKo_ind )
 		
 		#generate normalized ko_dict_ind
-		for ko, copy in ko_dict_ind.iteritems():
-			ko_dict_ind_norm[ko] = copy * weight
+		for strko, copy in hashKo_ind.iteritems():
+			hashKo_ind_norm[ko] = copy * astrLine_ref[1]
+			dKo_overall += hashKo_ind_norm[ko]
 		
 		#generate abundance file specified ko abundance data
-		if ko_dict == {}:
-			ko_dict = ko_dict_ind_norm
+		if hashKo == {}:
+			hashKo = hashKo_ind_norm
 		else:
-			for ko, abun in ko_dict_ind_norm.iteritems():
-				if ko in ko_dict:
-					ko_dict[ko] = ko_dict[ko] + abun
-				else:
-					ko_dict[ko] = abun
+			for ko, abun in hashKo_ind_norm.iteritems():
+				hashKo[ko] = hashKo.get( ko, 0 ) + abun
 
+	#normalize the final result so they add up to 1.
+	for ko in hashKo.keys():
+		hashKo[ko] = hashKo[ko]/dKo_overall
+	
 	#write the gene abundance data into the file
-	for ko, abun in ko_dict.iteritems():
-		f2.write( ko+'\t'+str(abun)+'\n' )
-	f2.close()
+	csv_writer_out = csv.writer( fileOutKo, csv.excel_tab )
+	for ko, abun in hashKo.iteritems():
+		csv_writer_out.writerow( [ko, abun] )
+	
 
 ko_counter( args.input_ref, args.ko_path, args.output_ko )
