@@ -30,12 +30,12 @@ def ko_counter( ref_path, ko_path, out_path ):
 	csv_reader_ref = csv.reader( fileIn_ref, csv.excel_tab )	
 
 	#Ko_dict stores final normalized genes abundance
-	Ko_dict = {}
+	hashKo = {}
 	#dKo_dict is used to normalize final result
 	dKo_overall = 0
 	#ko_path is the path of folder for img data
 	if ko_path[-1] != '/':
-		ko_path = ko_path + '/'
+		strKo_path_out = ko_path + '/'
 
 	for astrLine_ref in csv_reader_ref:
 		#ko_dict_ind stores bug-specified copy number of genes
@@ -50,18 +50,20 @@ def ko_counter( ref_path, ko_path, out_path ):
 			fileIn_Ko = open( strKo_full_path, 'r' )
 		except IOError:
 			print "Cannot open input ko.tab.txt file."
-		csv_reader_Ko = csv.reader( fileIn_Ko, csv.excel_tab )		
-	
+		csv_reader_Ko = csv.reader( fileIn_Ko, csv.excel_tab )
+				
+		dKo_head = 0
 		for astrLine_Ko in csv_reader_Ko:
-			if astrLine_Ko:
+			dKo_head += 1
+			if astrLine_Ko and dKo_head > 1:
 				#some of ko do not have id value in the ko.tab.
 				#txt file. Whether to ignore them?
 				if astrLine_Ko[2] != '':
 					hashKo_ind = add_ko( astrLine_Ko[9].split(":")[1], hashKo_ind )
 		
 		#generate normalized ko_dict_ind
-		for strko, copy in hashKo_ind.iteritems():
-			hashKo_ind_norm[ko] = copy * astrLine_ref[1]
+		for ko, copy in hashKo_ind.iteritems():
+			hashKo_ind_norm[ko] = copy * float( astrLine_ref[1] )
 			dKo_overall += hashKo_ind_norm[ko]
 		
 		#generate abundance file specified ko abundance data
@@ -76,7 +78,7 @@ def ko_counter( ref_path, ko_path, out_path ):
 		hashKo[ko] = hashKo[ko]/dKo_overall
 	
 	#write the gene abundance data into the file
-	csv_writer_out = csv.writer( fileOutKo, csv.excel_tab )
+	csv_writer_out = csv.writer( fileOut_Ko, csv.excel_tab )
 	for ko, abun in hashKo.iteritems():
 		csv_writer_out.writerow( [ko, abun] )
 	
