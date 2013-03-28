@@ -19,12 +19,12 @@ Reads_No			= "100"
 
 c_pathInputGenomeDir		= "/n/CHB/data/synthetic_metagenomes/genomes"
 
-c_fileInputTaxonDir		= "/n/CHB/data/IMG_v350/taxontable.txt"
+c_fileInputTaxonDir		= sfle.d( pE, fileDirInput, "taxontable_new.txt" )
 
 c_pathKO			= "/n/CHB/data/IMG_v350/img_w_v350"
 
 #need to refine this
-c_pathInputAbundRef	= sfle.d( pE, fileDirInput, "abun_ref" )
+c_pathInputAbundRef	= sfle.d( fileDirInput, "abun_ref" )
 c_allfiles_InputAbundRef= Glob( sfle.d( c_pathInputAbundRef, "*.txt" ))
 
 #Error model
