@@ -15,49 +15,59 @@ Header
 Constant and file definitions.
 """
 
-Reads_No			= "100"
+#============User-defined constant===============
+
+Reads_No			= "1000"
 
 c_pathInputGenomeDir		= "/n/CHB/data/synthetic_metagenomes/genomes"
 
-c_fileInputTaxonDir		= "/n/CHB/data/IMG_v350/taxontable.txt"
-
 c_pathKO			= "/n/CHB/data/IMG_v350/img_w_v350"
 
-#need to refine this
-c_pathInputAbundRef	= sfle.d( pE, fileDirInput, "abun_ref" )
-c_allfiles_InputAbundRef= Glob( sfle.d( c_pathInputAbundRef, "*.txt" ))
+#============Script-generated constant================
 
-#Error model
-c_pathInputErrModel	= sfle.d( fileDirInput, "error_model" )
-c_fileInputErrModel	= File(sfle.d( c_pathInputErrModel, "ill100v5_p.gzip" ))
+#IMG dataset taxonomy table file
+c_fileInputTaxon		= sfle.d( pE, fileDirInput, "Taxontable_demo" )
 
-#src script
-c_fileProgConvert	= File(sfle.d( pE, sfle.c_strDirSrc, "convert_ref.py" ))
-c_fileProgKO		= File(sfle.d( pE, sfle.c_strDirSrc, "ko_counter.py" ))
-c_fileProgCheck		= File(sfle.d( pE, sfle.c_strDirSrc, "check_contig.py"))
-c_fileProgPicard	= File(sfle.d( pE, sfle.c_strDirSrc, "FastqToSam.jar"))
+#Error model file
+c_fileInputErrModel		= sfle.d( pE, fileDirInput, "ill100v5_p.gzip" )
+
+#Input user-defined relative abundance files
+c_allfiles_InputAbundRef	= Glob( sfle.d( fileDirInput, "*.txt" ) )
+
+#src scripts
+c_fileProgConvert		= sfle.d( pE, sfle.c_strDirSrc, "convert_ref.py" )
+c_fileProgKO			= sfle.d( pE, sfle.c_strDirSrc, "ko_counter.py" )
+c_fileProgCheck			= sfle.d( pE, sfle.c_strDirSrc, "check_contig.py")
+c_fileProgGemReads		= sfle.d( pE, sfle.c_strDirSrc, "rby_test1.py" )
+c_fileProgPicard		= sfle.d( pE, sfle.c_strDirSrc, "FastqToSam.jar")
 
 #Converted ref files
-c_pathConvertedref	= sfle.d( fileDirTmp, "converted" )
-c_allfiles_Converted	= [ sfle.d( pE, c_pathConvertedref, sfle.rebase( f ) ) for f in c_allfiles_InputAbundRef ]
+c_pathConvertedref		= sfle.d( fileDirTmp, "Converted" )
+c_allfiles_Converted		= [sfle.d( pE, c_pathConvertedref, sfle.rebase( fileInAbun ) ) for fileInAbun in c_allfiles_InputAbundRef]
+#c_allfiles_Converted_log	= [sfle.d( pE, c_pathConvertedref, sfle.rebase( fileInAbun, ".txt", ".log" ) ) for fileInAbun in c_allfiles_InputAbundRef]
 
-#Generate checked genome path
-c_pathChecked = sfle.d( fileDirTmp, "checked_genome" )
-c_allpaths_Checked = [sfle.d( c_pathChecked, sfle.rebase( InputRef, ".txt" ) ) for InputRef in c_allfiles_InputAbundRef]
+#Checked genome sequences files
+c_pathChecked 			= sfle.d( fileDirTmp, "Checked_genome" )
+c_allpaths_Checked 		= [sfle.d( c_pathChecked, sfle.rebase( fileInAbun, ".txt" ) ) for fileInAbun in c_allfiles_InputAbundRef]
+#possible buggy
+#c_allfiles_Checked_log 		= [sfle.d( pE, fileDirTmp, "Checked_genome", sfle.rebase( fileInAbun, ".txt" ), sfle.rebase(fileInAbun, ".txt", ".log") ) for fileInAbun in c_allfiles_InputAbundRef]
 
-#Generate synthetic sequencing data
-c_path_Synseq		= sfle.d( fileDirOutput, "Synseq")
-c_allfilespath_Synseq_fir	= [sfle.d( pE, c_path_Synseq, sfle.rebase( f, ".txt", "_fir.fastq" ) ) for f in c_allfiles_InputAbundRef]
-c_allfilespath_Synseq_sec	= [sfle.d( pE, c_path_Synseq, sfle.rebase( f, ".txt", "_sec.fastq" ) ) for f in c_allfiles_InputAbundRef]
+#Synthetic sequencing data
+c_path_Synseq			= sfle.d( fileDirOutput, "Synseq")
+c_allfiles_Synseq_fir		= [sfle.d( pE, c_path_Synseq, sfle.rebase( fileInAbun, ".txt", "_fir.fastq" ) ) for fileInAbun in c_allfiles_InputAbundRef]
+c_allfiles_Synseq_sec		= [sfle.d( pE, c_path_Synseq, sfle.rebase( fileInAbun, ".txt", "_sec.fastq" ) ) for fileInAbun in c_allfiles_InputAbundRef]
+c_allfiles_Synseq_BAM		= [sfle.d( pE, c_path_Synseq, sfle.rebase( fileInAbun, ".txt", ".bam" ) ) for fileInAbun in c_allfiles_InputAbundRef]
 
-#Log file for synthetic script
-c_path_Synseq_log	= sfle.d( fileDirTmp, "Synseq" )
+#Gene abundance gold standard files
+c_path_Gene			= sfle.d( fileDirOutput, "Gene" )
+c_allfiles_Gene			= [sfle.d( pE, c_path_Gene, sfle.rebase( fileInAbun ) ) for fileInAbun in c_allfiles_InputAbundRef]
 
-"""
-#Generate ko gold standard files
-c_path_KO		= sfle.d( pE, fileDirOutput, "KO")
-c_allfiles_KO		= [sfle.d( c_path_KO, os.path.basename(f) ) for f in c_allfiles_InputAbundRef]
-"""
+#Log files
+c_allfiles_Converted_log = [sfle.d( pE, fileDirTmp, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_convert.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
+c_allfiles_Checked_log = [sfle.d( pE, fileDirTmp, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_check.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
+c_allfiles_Synseq_log = [sfle.d( pE, fileDirTmp, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_syn.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
+c_allfiles_Synseq_remove_log = [sfle.d( pE, fileDirTmp, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_syn_remove.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
+
 
 """
 Processing module 1
@@ -65,55 +75,53 @@ Processing module 1
 
 Convert reference abundance file and check the genome files to filter out short contigs.
 """
+#Convert raw input abundance files
+for i, fileInRef in enumerate( c_allfiles_InputAbundRef ):
+	sfle.op( pE, c_fileProgConvert, [ "-i", [fileInRef], "-r", [c_fileInputTaxon], "-o", [True, c_allfiles_Converted[i]], "-l", [True, c_allfiles_Converted_log[i]] ] )
 
-for InputRef in c_allfiles_InputAbundRef:
-	Converted = sfle.d( pE, c_pathConvertedref, sfle.rebase( InputRef ) )
-	sfle.op( pE, c_fileProgConvert, ["-i", [InputRef], "-r", c_fileInputTaxonDir, "-o", [True, Converted]] )
-
-
-for ConvertedRef in c_allfiles_Converted:
-	Checked = sfle.d( c_pathChecked, sfle.rebase( ConvertedRef, ".txt" ) )
-	sfle.op( pE, c_fileProgCheck, ["-i", [ConvertedRef], "-g", c_pathInputGenomeDir, "-o", [True, Checked]] )
+#Check genome files
+for i, fileConverted in enumerate( c_allfiles_Converted ):
+	#If I denote Checked_log as an output in the c_fileProgCheck pipeline
+	#Every time when adding in a new raw input file, we should run scons
+	#twice before everything appears up to date.
+	#So I use this trick to get rid of this. Do not know the mechanism
+	#making above issue.
+	sfle.sop( pE, "echo >", [ [True, c_allfiles_Checked_log[i]] ] )
+	sfle.op( pE, c_fileProgCheck, [ "-i", [fileConverted], "-g", [c_pathInputGenomeDir], "-o", [True, c_allpaths_Checked[i]], "-l", [c_allfiles_Checked_log[i]] ] )
 
 """
-Processing module 2-3
+Processing module 2
 ==================
 
-Synthesize sequencing data and generating KO gold standard file
+Synthesize Illumina metagenomic sequencing data
 """
 
-for InputConvert in c_allfiles_Converted:
+for i, fileInConverted in enumerate( c_allfiles_Converted ):
 
-	Checked_genomes = sfle.d( c_pathChecked, sfle.rebase( InputConvert, ".txt" ) )
-	Log = File( sfle.d( c_path_Synseq_log, "Syn_" + sfle.rebase( InputConvert, ".txt", ".log" ) ) )
-	SynSeq = File( sfle.d( c_path_Synseq, sfle.rebase( InputConvert, ".txt" ) ) )
-	SynSeq_fir = File( sfle.d( c_path_Synseq, sfle.rebase( InputConvert, ".txt", "_fir.fastq" ) ) )
-	SynSeq_sec = File( sfle.d( c_path_Synseq, sfle.rebase( InputConvert, ".txt", "_sec.fastq" ) ) )
+	#Run GemRead.py script
+	#named rby1.py for I tweak the raw script a little
+	sfle.sop( pE, "python", [ [c_fileProgGemReads], "-R", [c_allpaths_Checked[i]], "-a", [fileInConverted], "-n", Reads_No, "-l", "d", "-m", [c_fileInputErrModel], "-c", "-q", "33", "-o", [True, c_allfiles_Synseq_fir[i]], "-O", [True, c_allfiles_Synseq_sec[i]], "-p", "-u", "d", "-z", [True, c_allfiles_Synseq_log[i]] ] )
+	#Default( [c_allfiles_Synseq_fir[i], c_allfiles_Synseq_sec[i], c_allfiles_Synseq_log[i]] )
 
-	sfle.sop( pE, "echo >", [[True, SynSeq_fir]] )
-	Default( SynSeq_fir )
-	sfle.sop( pE, "echo >", [[True, SynSeq_sec]] )
-	Default( SynSeq_sec )
+	#Consider about how to running picard
+	#Generate compressed BAM files
+	Depends( sfle.sop( pE, "java", [ "-jar", [c_fileProgPicard], "F1=", [c_allfiles_Synseq_fir[i]], "F2=", [c_allfiles_Synseq_sec[i]], "V=Standard", "SM=GemSim", "O=", [True, c_allfiles_Synseq_BAM[i]] ] ), c_allfiles_Synseq_fir[i] )
+	Default( c_allfiles_Synseq_BAM[i] )
+	
+	#Delete fastq files from GemReads.py (rby1.py)
+	#Might cause dependency issue but now haven't encounter
+	#Depends( sfle.sop( pE, "rm -f -v", [ [c_allfiles_Synseq_fir[i]], [c_allfiles_Synseq_sec[i]], "|", [True, c_allfiles_Synseq_remove_log[i]] ] ), c_allfiles_Synseq_BAM[i] )
+	#Default( c_allfiles_Synseq_remove_log[i] )
 
-	SynSeq_bam = File( sfle.d( c_path_Synseq, sfle.rebase( InputConvert, ".txt", ".bam" ) ) )
-	Remove_log = sfle.d( pE, c_path_Synseq_log, sfle.rebase( InputConvert, ".txt", "_remove.log" ) )
+"""
+Processing module 3
+=================
 
-	#Create a dummy log file so the script can find the right path
-	sfle.sop( pE, "echo >", [[True, Log]] )
-	#Run synthetic script
-	sfle.sop( pE, "rby_test1.py", [ "-R", [Checked_genomes], "-a", [InputConvert], "-n", Reads_No, "-l", "d", "-m", [c_fileInputErrModel], "-c", "-q", "33", "-o", [True,SynSeq], "-p", "-u", "d", "-z", [Log]] )
+Generate gold standard files for genes, pathways and modules
+"""
 
-	#Change the part after -jar to your path to FastqToSam.jar
-	Depends( sfle.sop( pE, "java -jar ~/picard/FastqToSam.jar", ["F1=", [SynSeq_fir], "F2=", [SynSeq_sec], "V=Standard", "SM=GemSim", "O=", [True, SynSeq_bam]] ), SynSeq )
-	Default( SynSeq_bam )
-
-	Depends( sfle.sop( pE, "rm -f -v", [">", [True, Remove_log], [SynSeq_fir], [SynSeq_sec]] ), SynSeq_bam )
-	Default( Remove_log )
-
-#Generating gold standard files for pathway
-
-for InputRef in c_allfiles_Converted:
-	KO_Ref = sfle.d( pE, fileDirOutput, "KO", sfle.rebase( InputRef ) )
-	sfle.op( pE, c_fileProgKO, ["-i", [InputRef], "-k", c_pathKO, "-o", [True, KO_Ref]] )
-	Default( KO_Ref )
+#Generating gold standard files for genes
+for i, fileInConverted in enumerate( c_allfiles_Converted ):
+	sfle.op( pE, c_fileProgKO, [ "-i", [fileInConverted], "-k", c_pathKO, "-o", [True, c_allfiles_Gene[i]] ] )
+	Default( c_allfiles_Gene[i] )
 

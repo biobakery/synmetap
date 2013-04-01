@@ -1,6 +1,0 @@
-
-g_Escherichia|sp_coli	0.5
-g_Mycoplasma|sp_agalactiae	0.5
-g_Pseudomonas|sp_aeruginosa	0.5
-g_Bacillus|sp_thuringiensis	0.5
-

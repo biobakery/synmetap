@@ -613,7 +613,8 @@ def usage():
     print '      -m error model file *_single.gzip or *_paired.gzip.'
     print '      -c use this flag if you wish to draw reads from a circular genome.'
     print '      -q quality score offset. Usually 33 or 64 (see manual).' 
-    print '      -o output file name prefix.'
+    print '      -o output first sequence file.'
+    print '	 -O output second sequence file if -p is specified.'
     print '      -u Mean fragment length for paired end reads. -u d for empirical.'
     print '      -s standard deviation for fragment length. Use only with -u and -p.' 
     print '      -p use only to create paired end reads.'
@@ -635,12 +636,16 @@ def main(argv):
     circular=False
     qual=''
     out=''
+
+    #added by rby
+    out2=''
+
     paired=False
     meta=False
     mean=''
     stdv=''
     try:
-        opts, args = getopt.getopt(argv, "hr:R:a:n:g:G:l:m:ce:q:o:u:s:z:p")
+        opts, args = getopt.getopt(argv, "hr:R:a:n:g:G:l:m:ce:q:o:O:u:s:z:p")
     except getopt.GetoptError:
         usage()
         sys.exit(2)
@@ -681,6 +686,8 @@ def main(argv):
             qual=int(arg)
         elif opt =='-o':
             out=arg
+	elif opt =='-O':
+	    out2=arg
         elif opt =='-p':
             paired=True
 	elif opt =='-z':
@@ -694,12 +701,13 @@ def main(argv):
     
     abund_test=open(abund,'r')
     if abund_test.readlines() == []:
-	out1=open(out+'_fir.fastq','w')
-	out2=open(out+'_sec.fastq','w')
+	out1=open(out,'w')
 	out1.write('Raw input ref files contain non-IMG taxa.\n')
-	out2.write('Raw input ref files contain non-IMG taxa.\n')
 	out1.close()
-	out2.close()
+	if paired:
+		out2=open(out2,'w')
+		out2.write('Raw input ref files contain non-IMG taxa.\n')
+		out2.close()
 	return
 
     if number=='' or models=='' or length=='' or qual=='' or out=='':
@@ -714,13 +722,13 @@ def main(argv):
             usage()
             sys.exit()
         rdlog.info('Generating paired end reads.') 
-        out1=open(out+'_fir.fastq','w')
-    	out2=open(out+'_sec.fastq','w')
+        out1=open(out,'w')
+    	out2=open(out2,'w')
         rdlog.debug('Parsing model file.')
         mx1,mx2,insD1,insD2,delD1,delD2,intervals,gQualL,bQualL,iQualL,mates,rds,rdLenD=parseModel(models,paired,length)
         rdlog.debug('Model file parsed.')
     else:
-        out1=open(out+'_single.fastq','w')
+        out1=open(out,'w')
         rdlog.info('Generating single reads.')
         rdlog.debug('Parsing model file.')
         mx1,insD1,delD1,gQualL,bQualL,iQualL,readCount,rdLenD=parseModel(models,paired,length)
