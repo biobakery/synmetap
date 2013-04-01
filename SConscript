@@ -63,10 +63,10 @@ c_path_Gene			= sfle.d( fileDirOutput, "Gene" )
 c_allfiles_Gene			= [sfle.d( pE, c_path_Gene, sfle.rebase( fileInAbun ) ) for fileInAbun in c_allfiles_InputAbundRef]
 
 #Log files
-c_allfiles_Converted_log = [sfle.d( pE, fileDirTmp, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_convert.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
-c_allfiles_Checked_log = [sfle.d( pE, fileDirTmp, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_check.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
-c_allfiles_Synseq_log = [sfle.d( pE, fileDirTmp, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_syn.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
-c_allfiles_Synseq_remove_log = [sfle.d( pE, fileDirTmp, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_syn_remove.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
+c_allfiles_Converted_log = [sfle.d( pE, fileDirOutput, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_convert.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
+c_allfiles_Checked_log = [sfle.d( pE, fileDirOutput, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_check.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
+c_allfiles_Synseq_log = [sfle.d( pE, fileDirOutput, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_syn.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
+c_allfiles_Synseq_remove_log = [sfle.d( pE, fileDirOutput, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_syn_remove.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
 
 
 """

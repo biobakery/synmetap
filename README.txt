@@ -72,6 +72,6 @@ near future.
 
 3. Log files
 Log files contain some important information concerning taxonomy name mapping
-and synthesizing sequencing process. You can find them in output/tmp/Log.
+and synthesizing sequencing process. You can find them in output/Log.
 _convert.log is for name mapping, _check.log is for short contigs check and
 _synseq.log is for sythesizing process.
