@@ -19,8 +19,6 @@ the IMG taxontable we distributed. This table is located at
 input/Taxontable_demo. Users can replace it and details can be found below. We
 highly recommend you use the IMG dataset.
 
-================================
-
 ======Input Files======
 
 1. Relative abundance files for community (required)
