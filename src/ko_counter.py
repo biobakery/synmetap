@@ -56,10 +56,7 @@ def ko_counter( ref_path, ko_path, out_path ):
 		for astrLine_Ko in csv_reader_Ko:
 			dKo_head += 1
 			if astrLine_Ko and dKo_head > 1:
-				#some of ko do not have id value in the ko.tab.
-				#txt file. Whether to ignore them?
-				if astrLine_Ko[2] != '':
-					hashKo_ind = add_ko( astrLine_Ko[9].split(":")[1], hashKo_ind )
+				hashKo_ind = add_ko( astrLine_Ko[9].split(":")[1], hashKo_ind )
 		
 		#generate normalized ko_dict_ind
 		for ko, copy in hashKo_ind.iteritems():
