@@ -75,3 +75,13 @@ Log files contain some important information concerning taxonomy name mapping
 and synthesizing sequencing process. You can find them in output/Log.
 _convert.log is for name mapping, _check.log is for short contigs check and
 _synseq.log is for sythesizing process.
+
+=======Details of Pipeline======
+
+1. Intermediate processes:
+1.1 Convert user given abundance file into GemReads compatible abundance file
+The GemReads compatible abundance file is very similar to the user-defined
+abundance file except that the first column is the exact file names of genome
+sequence files in the input database. Since the users always want to specify
+the real name of the bugs, we will do this mapping in the pipeline so the
+GemReads can be drived correctly.

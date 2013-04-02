@@ -4,9 +4,9 @@ import argparse
 import os
 import sys
 import csv
-import gzip
-import cPickle
 import re
+
+alevel = ["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Strain"]
 
 def parse_taxon_table_new( taxon_path ):
 	
@@ -17,7 +17,6 @@ def parse_taxon_table_new( taxon_path ):
 	
 	csv_in_taxa = csv.reader( fileIn_taxa, csv.excel_tab )
 	hashhashhashTaxon = {}
-	alevel = ["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Strain"]
 	fHead = True
 
 	for astrLine in csv_in_taxa:
@@ -25,6 +24,9 @@ def parse_taxon_table_new( taxon_path ):
 			fHead = False
 			continue
 
+		#and is necessary for we want to get
+		#rid of entry without IMG taxon ID
+		#This ID is in astrLine[0]
 		if astrLine and astrLine[0]:
 			hashLine = {}	
 			hashLine["ID"] = astrLine[0]
@@ -44,7 +46,7 @@ def parse_taxon_table_new( taxon_path ):
 				#Get rid of some special keywords which do not
 				#represent a unique clade. unclassified is most
 				#usual. sp. cf. bacterium happen in species
-				#colum.
+				#colums.
 				if hashLine[level] and ( "unclassified" not in hashLine[level].lower() ) and ( hashLine[level] != "sp." ) and ( hashLine[level] != "cf." ) and ( hashLine[level] != "bacterium" ):
 					hashTaxon = hashhashTaxon.setdefault( hashLine[level], {} )
 					if ( hashTaxon and hashTaxon["Status"].lower() == "draft" and hashLine["Status"].lower() == "finished" ) or ( not hashTaxon ):
@@ -110,8 +112,6 @@ def _main():
 	parser.add_argument('-l', metavar = "log_file", dest = 'strLog', required = True, help = "output log file")
 
 	args = parser.parse_args()
-
-	alevel = ["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Strain"]
 
 	hashhashhashTaxon = parse_taxon_table_new( args.ref_taxa )
 	aastrLog = search_name_new( args.input_ref, hashhashhashTaxon, args.output_ref )
