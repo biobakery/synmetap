@@ -17,37 +17,37 @@ def del_short_contig( strfileIn, strfileOut ):
 	except IOError:
 		print "Cannot access output checked file."
 		
-	dline = 0
-	dhead = 0
-	dshort = 0
-	dseqs = 0
+	iline = 0
+	ihead = 0
+	ishort = 0
+	iseqs = 0
 	aastrline_cache = []
 		
 	csv_fasta_in = csv.reader( fileIn, csv.excel_tab )
 	csv_fasta_out = csv.writer( fileOut, csv.excel_tab )
 
 	for astrLine in csv_fasta_in:
-		dline += 1
+		iline += 1
 		if ( astrLine and re.search( r'^>', astrLine[0] ) ):
-			dseqs += 1
-			if dhead == 0:
-				dhead = dline
+			iseqs += 1
+			if ihead == 0:
+				ihead = iline
 			else:
-				if dline - dhead - 2 >= 15:
+				if iline - ihead - 2 >= 15:
 					csv_fasta_out.writerows( aastrLine_cache )
 				else:
-					dshort += 1
-				dhead = dline
+					ishort += 1
+				ihead = iline
 			aastrLine_cache = [astrLine]
 		else:
 			aastrLine_cache += [astrLine]
-	if dline - dhead - 2 >= 15:
+	if iline - ihead - 2 >= 15:
 		csv_fasta_out.writerows( aastrLine_cache )
 	else:
-		dshort += 1
-	if not dshort:
+		ishort += 1
+	if not ishort:
 		os.remove( strfileOut )
-	return [dshort, dseqs]
+	return [ishort, iseqs]
 
 def _main():
 
