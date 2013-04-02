@@ -3,81 +3,72 @@
 import argparse
 import csv
 
-parser = argparse.ArgumentParser(description='Count ko annotations.')
-parser.add_argument('-i',dest='input_ref',required=True)
-parser.add_argument('-o',dest='output_ko',required=True)
-parser.add_argument('-k',dest='ko_path',required=True)
-
-args = parser.parse_args()
-
-#count copy numbers of genes in specific bugs
-def add_ko( strKo, hashKo ):
-	hashKo[strKo] = 1 + hashKo.get( strKo, 0 )
-	return hashKo
-
 #generate final normalized gene abundance
-def ko_counter( ref_path, ko_path, out_path ):
+def ko_counter_raw( ref_path, ko_path ):
 	#ref_path: path for bugs abundance files
 	try:
 		fileIn_ref = open( ref_path, 'r' )
 	except IOError:
 		print "Cannot open input converted abundance file."
-	try:
-		fileOut_Ko = open( out_path, 'w' )
-	except IOError:
-		print "Cannot access output KO abundance file."
 
 	csv_reader_ref = csv.reader( fileIn_ref, csv.excel_tab )	
 
 	#Ko_dict stores final normalized genes abundance
 	hashKo = {}
-	#dKo_dict is used to normalize final result
-	dKo_overall = 0
-	#ko_path is the path of folder for img data
+	#ko_path is the path of folder for img annotation data
 	if ko_path[-1] != '/':
 		strKo_path_out = ko_path + '/'
 
 	for astrLine_ref in csv_reader_ref:
-		#ko_dict_ind stores bug-specified copy number of genes
-		hashKo_ind = {}
-		#ko_dict_ind_norm stores normalized bug-specified genes abundance
-		hashKo_ind_norm = {}
+
 		strBugID =  astrLine_ref[0].split('.')[0]
 		strKo_path_in = strBugID + '/' + strBugID + '.ko.tab.txt'
-		
 		strKo_full_path = strKo_path_out + strKo_path_in
+
+		dKo_abun = float( astrLine_ref[1] )
+
 		try:
 			fileIn_Ko = open( strKo_full_path, 'r' )
 		except IOError:
 			print "Cannot open input ko.tab.txt file."
 		csv_reader_Ko = csv.reader( fileIn_Ko, csv.excel_tab )
 				
-		dKo_head = 0
+		iKo_head = 0
 		for astrLine_Ko in csv_reader_Ko:
-			dKo_head += 1
-			if astrLine_Ko and dKo_head > 1:
-				hashKo_ind = add_ko( astrLine_Ko[9].split(":")[1], hashKo_ind )
+			iKo_head += 1
+			if astrLine_Ko and iKo_head > 1:
+				strKoID = astrLine_Ko[9].split(":")[1]
+				hashKo[strKoID] = hashKo.get( strKoID, 0 ) + dKo_abun
+	return hashKo
 		
-		#generate normalized ko_dict_ind
-		for ko, copy in hashKo_ind.iteritems():
-			hashKo_ind_norm[ko] = copy * float( astrLine_ref[1] )
-			dKo_overall += hashKo_ind_norm[ko]
-		
-		#generate abundance file specified ko abundance data
-		if hashKo == {}:
-			hashKo = hashKo_ind_norm
-		else:
-			for ko, abun in hashKo_ind_norm.iteritems():
-				hashKo[ko] = hashKo.get( ko, 0 ) + abun
-
-	#normalize the final result so they add up to 1.
-	for ko in hashKo.keys():
-		hashKo[ko] = hashKo[ko]/dKo_overall
+def norm_hash( hashKo, out_path ):
 	
-	#write the gene abundance data into the file
-	csv_writer_out = csv.writer( fileOut_Ko, csv.excel_tab )
-	for ko, abun in hashKo.iteritems():
-		csv_writer_out.writerow( [ko, abun] )
+	astrKoID = hashKo.keys()
+	adKo_abun = hashKo.values()
 	
+	dTot_abun = sum( adKo_abun )
+	adKo_abun_norm = [ dKo_abun/dTot_abun for dKo_abun in adKo_abun ]
 
-ko_counter( args.input_ref, args.ko_path, args.output_ko )
+	tKo_abun_norm = zip( astrKoID, adKo_abun_norm )
+
+	try:
+		fileOut = open( out_path, 'w' )
+	except IOError:
+		print "Cannot access output KO abundance file."
+
+	csv_writer_out = csv.writer( fileOut, csv.excel_tab )
+	csv_writer_out.writerows( tKo_abun_norm )
+
+def _main():
+
+	parser = argparse.ArgumentParser( description = 'Generate community specified gold standard gene abundance files.' )
+	parser.add_argument( "-i", metavar = "input_abun_file", dest = "input_ref", required = True, help = "Input converted abundance file" )
+	parser.add_argument( "-o", metavar = "output_abun_file", dest = "output_ko", required = True, help = "Output gene abundance gold standard file" )
+	parser.add_argument( "-k", metavar = "input_anno_file", dest = "ko_path", required = True, help = "Path to input gene annotation files" )
+	args = parser.parse_args()
+
+	hashKo = ko_counter_raw( args.input_ref, args.ko_path )
+	norm_hash( hashKo, args.output_ko )
+
+if __name__ == "__main__":
+	_main()

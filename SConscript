@@ -2,8 +2,6 @@
 
 import sfle
 import sys
-import os
-import glob
 
 Import( "*" )
 pE = DefaultEnvironment( )
