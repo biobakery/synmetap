@@ -79,9 +79,39 @@ _synseq.log is for sythesizing process.
 =======Details of Pipeline======
 
 1. Intermediate processes:
-1.1 Convert user given abundance file into GemReads compatible abundance file
+
+1.1 Convert user given abundance files into GemReads compatible abundance
+files
+
 The GemReads compatible abundance file is very similar to the user-defined
 abundance file except that the first column is the exact file names of genome
 sequence files in the input database. Since the users always want to specify
 the real name of the bugs, we will do this mapping in the pipeline so the
 GemReads can be drived correctly.
+
+1.2 Check genome sequence files
+
+Normally, the genome sequence files can contain more than one sequence. In
+this case, they are called contigs. The length for the contigs in one sequence
+file can vary dramatically. The too short contigs are very likely to crash
+GemReads. The reason for this is because by default, we generate paired-end
+reads by GemReads and it will help you choose an empirical insert length
+for the paired reads. This empirical data is drawn from the real Illumina
+sequencing data which is recorded in the error model file we have included in
+this project.
+
+For Illumina run, the typical length for each end of a pair is around 100 bps
+and the error model we used consider the minimal insert length as around
+300 bps. On the other hand, GemReads does not concatenate all contigs in one
+genome into one and randomly pick one position to start. It assigns a
+length-based probability to each contig in one genome sequence file and pick
+one contig randomly based on this probability. The picked contig will be
+treated as the template from which the synthetic sequencing data are drawn.
+
+If one contig in the genome sequence file is shorter than 300 bps, it is 
+likely that we cannot slice a typcial Illumina PE reads from it which will
+cause GemReads crash.
+
+To deal with this issue, we are performing one filtering procedure to delete the
+too short contigs in the input genome files. This is usually necessary for the
+draft genome files which are always highly fragmented. 

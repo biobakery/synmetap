@@ -6,7 +6,7 @@ import os
 import csv
 import argparse
 
-def del_short_contig( strfileIn, strfileOut ):
+def del_short_contig( strfileIn, strfileOut, iMinLen ):
 	
 	try:
 		fileIn = open( strfileIn, "r" )
@@ -17,36 +17,38 @@ def del_short_contig( strfileIn, strfileOut ):
 	except IOError:
 		print "Cannot access output checked file."
 		
-	iline = 0
-	ihead = 0
 	ishort = 0
 	iseqs = 0
-	aastrline_cache = []
+	aastrLine_cache = []
 		
 	csv_fasta_in = csv.reader( fileIn, csv.excel_tab )
 	csv_fasta_out = csv.writer( fileOut, csv.excel_tab )
 
 	for astrLine in csv_fasta_in:
-		iline += 1
 		if ( astrLine and re.search( r'^>', astrLine[0] ) ):
 			iseqs += 1
-			if ihead == 0:
-				ihead = iline
-			else:
-				if iline - ihead - 2 >= 15:
+			if aastrLine_cache:
+				strContig = "".join( [ astrContig[0] for astrContig in aastrLine_cache[1:] if astrContig ] )
+				iLen = len( strContig )
+				if iLen > iMinLen:
 					csv_fasta_out.writerows( aastrLine_cache )
 				else:
 					ishort += 1
-				ihead = iline
 			aastrLine_cache = [astrLine]
 		else:
-			aastrLine_cache += [astrLine]
-	if iline - ihead - 2 >= 15:
+			aastrLine_cache.append( astrLine )
+	
+	strContig = "".join( [ astrLine[0] for astrLine in aastrLine_cache[1:] if astrLine ] )
+	iLen = len( strContig )
+
+	if iLen > iMinLen:
 		csv_fasta_out.writerows( aastrLine_cache )
 	else:
 		ishort += 1
+
 	if not ishort:
 		os.remove( strfileOut )
+
 	return [ishort, iseqs]
 
 def _main():
@@ -59,6 +61,7 @@ def _main():
 	parser.add_argument( "-g", metavar = "genome_ref_path", dest = "rawGenome_path", required = True, help = "input path to IMG reference genome files" )
 	parser.add_argument( "-o", metavar = "output_checked", dest = "checkedGenome_path", required = True, help = "path to output checked required genome files")
 	parser.add_argument( "-l", metavar = "log_file", dest = "log", required= True, help = "output log file" )
+	parser.add_argument( "-n", metavar = "min_length", dest = "imin", type = int, required = True, help = "minimal contig length" )
 
 	args = parser.parse_args()	
 	
@@ -96,7 +99,7 @@ def _main():
 		if os.path.exists( stroutput_Genome ):
 			os.remove( stroutput_Genome )
 
-		dShort, dSeqs = del_short_contig( strinput_Genome, stroutput_Genome )
+		dShort, dSeqs = del_short_contig( strinput_Genome, stroutput_Genome, args.imin )
 		if dShort == 0:
 			os.symlink( strinput_Genome, stroutput_Genome )
 		aastrLog.append( [astrLine[0], str(dSeqs), str(dShort)] )
