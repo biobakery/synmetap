@@ -14,6 +14,7 @@ Constant and file definitions.
 """
 
 #============User-defined constant===============
+
 #Number of synthesized reads
 c_Reads_No			= "1000"
 

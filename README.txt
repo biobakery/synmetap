@@ -19,6 +19,9 @@ the IMG taxontable we distributed. This table is located at
 input/Taxontable_demo. Users can replace it and details can be found below. We
 highly recommend you use the IMG dataset.
 
+3. Minimum length of contigs that can be kept in the checked genome sequnence
+data.
+
 ======Input Files======
 
 1. Relative abundance files for community (required)
@@ -114,4 +117,5 @@ cause GemReads crash.
 
 To deal with this issue, we are performing one filtering procedure to delete the
 too short contigs in the input genome files. This is usually necessary for the
-draft genome files which are always highly fragmented. 
+draft genome files which are always highly fragmented. The threshold for
+length is user-defined.
