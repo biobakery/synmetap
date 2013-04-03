@@ -5,7 +5,8 @@ task of this pipeline is to generate metagenomic data while whole genome
 sequencing data can also be created. Using sfle to drive, you should place
 this project in sfle/input folder as an independent subfolder.
 
-======User-defined constant======
+User-defined constant
+========================
 
 Several user-defined constants can be modified within Sconscript.
 
@@ -22,7 +23,8 @@ highly recommend you use the IMG dataset.
 3. Minimum length of contigs that can be kept in the checked genome sequnence
 data.
 
-======Input Files======
+Input files
+==================
 
 1. Relative abundance files for community (required)
 The only input files that should be provided by users are the abundance files.
@@ -61,7 +63,8 @@ We have distributed an error model file within our repository. You can find it
 in input/ill100v5_p.gzip. It is based on aligned Illumina sequencing data. More
 details can be found in GemSIM paper (doi:10.1186/1471-2164-13-74).
 
-======Output Files=====
+Output files
+=================
 
 1. Synthesized sequencing data
 We set the sequencing producing paired-end reads as default. The output files
@@ -79,7 +82,8 @@ and synthesizing sequencing process. You can find them in output/Log.
 _convert.log is for name mapping, _check.log is for short contigs check and
 _synseq.log is for sythesizing process.
 
-=======Details of Pipeline======
+Details of pipeline
+========================
 
 1. Intermediate processes:
 
