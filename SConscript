@@ -78,6 +78,10 @@ Processing module 1
 ===================
 
 Convert reference abundance file and check the genome files to filter out short contigs.
+
+Input: User-created abundance files
+Output: Converted GemSIM compatible abundance files, short contig filtered genomes sequences files.
+
 """
 #Convert raw input abundance files
 for i, fileInRef in enumerate( c_allfiles_InputAbundRef ):
@@ -98,6 +102,10 @@ Processing module 2
 ==================
 
 Synthesize Illumina metagenomic sequencing data
+
+Input: converted GemSIM compatible abundance files, short contig filtered genomes sequences files
+Output: synthesized sequences files
+
 """
 
 for i, fileInConverted in enumerate( c_allfiles_Converted ):
@@ -122,6 +130,9 @@ Processing module 3
 =================
 
 Generate gold standard files for genes, pathways and modules
+
+Input: converted GemSIM compatible abundance files, IMG gene annotation files
+Output: gold standard files for genes, pathways and modules (under construction) relative abundance.
 """
 
 #Generating gold standard files for genes
