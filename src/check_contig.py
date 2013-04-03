@@ -19,33 +19,28 @@ def del_short_contig( strfileIn, strfileOut, iMinLen ):
 		
 	ishort = 0
 	iseqs = 0
-	aastrLine_cache = []
+	strLine_cache = ""
+	fWrite = False 
 		
-	csv_fasta_in = csv.reader( fileIn, csv.excel_tab )
-	csv_fasta_out = csv.writer( fileOut, csv.excel_tab )
-
-	for astrLine in csv_fasta_in:
-		if ( astrLine and re.search( r'^>', astrLine[0] ) ):
+	for strLine in fileIn:
+		strLine = strLine.strip()
+		if ( strLine and re.search( r'^>', strLine ) ):
 			iseqs += 1
-			if aastrLine_cache:
-				strContig = "".join( [ astrContig[0] for astrContig in aastrLine_cache[1:] if astrContig ] )
-				iLen = len( strContig )
-				if iLen > iMinLen:
-					csv_fasta_out.writerows( aastrLine_cache )
-				else:
-					ishort += 1
-			aastrLine_cache = [astrLine]
+			fWrite = False
+			if strLine_cache:
+				ishort += 1
+			strLine_cache = ( strLine + "\n" )
+		elif fWrite:
+			fileOut.write( strLine + "\n" )
 		else:
-			aastrLine_cache.append( astrLine )
-	
-	strContig = "".join( [ astrLine[0] for astrLine in aastrLine_cache[1:] if astrLine ] )
-	iLen = len( strContig )
-
-	if iLen > iMinLen:
-		csv_fasta_out.writerows( aastrLine_cache )
-	else:
+			strLine_cache += ( strLine + "\n" )
+			if len( "".join( strLine_cache.split("\n")[1:] ) ) > iMinLen:
+				fileOut.write( strLine_cache )
+				strLine_cache = ""
+				fWrite = True
+	if strLine_cache:
 		ishort += 1
-
+	
 	if not ishort:
 		os.remove( strfileOut )
 
