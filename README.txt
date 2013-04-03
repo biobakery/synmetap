@@ -137,13 +137,13 @@ fraction of sequences belong to each bug can be very different.
 
 3.1 Bugs abundance gold standard file
 
-This is the input file.
+This is the input abundance file.
 
 3.2 Genes abundance file
 
 This is done by reading the annotation files in IMG dataset for each input
 bug. We count the frequency of all different KO's in each bug recorded in the
-annotation file and normalize this count by the relative abundance. The
-resulting relative abundance of each KO in the community is the sum of all the
-individual bug's normalized KO frequency. This relative abundance can be
-normalized by arbitrary positive real number.
+annotation files and normalize this count by the bug's relative abundance. The
+resulting relative abundance of each KO with regard to the whole community is
+the sum of all the individual bug's normalized KO frequency. This relative
+abundance can be multiplied by arbitrary positive real number.
