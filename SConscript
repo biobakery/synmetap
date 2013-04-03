@@ -14,11 +14,16 @@ Constant and file definitions.
 """
 
 #============User-defined constant===============
+#Number of synthesized reads
+c_Reads_No			= "1000"
 
-Reads_No			= "1000"
+#Minimum contig length
+c_Min_Contig_Len			= "840"
 
+#path to genome sequence files
 c_pathInputGenomeDir		= "/n/CHB/data/synthetic_metagenomes/genomes"
 
+#path to annotation files
 c_pathKO			= "/n/CHB/data/IMG_v350/img_w_v350"
 
 #============Script-generated constant================
@@ -85,7 +90,7 @@ for i, fileConverted in enumerate( c_allfiles_Converted ):
 	#So I use this trick to get rid of this. Do not know the mechanism
 	#making above issue.
 	sfle.sop( pE, "echo >", [ [True, c_allfiles_Checked_log[i]] ] )
-	sfle.op( pE, c_fileProgCheck, [ "-i", [fileConverted], "-g", [c_pathInputGenomeDir], "-o", [True, c_allpaths_Checked[i]], "-l", [c_allfiles_Checked_log[i]] ] )
+	sfle.op( pE, c_fileProgCheck, [ "-i", [fileConverted], "-g", [c_pathInputGenomeDir], "-o", [True, c_allpaths_Checked[i]], "-l", [c_allfiles_Checked_log[i]], "-n", c_Min_Contig_Len ] )
 
 """
 Processing module 2
@@ -98,7 +103,7 @@ for i, fileInConverted in enumerate( c_allfiles_Converted ):
 
 	#Run GemRead.py script
 	#named rby1.py for I tweak the raw script a little
-	sfle.sop( pE, "python", [ [c_fileProgGemReads], "-R", [c_allpaths_Checked[i]], "-a", [fileInConverted], "-n", Reads_No, "-l", "d", "-m", [c_fileInputErrModel], "-c", "-q", "33", "-o", [True, c_allfiles_Synseq_fir[i]], "-O", [True, c_allfiles_Synseq_sec[i]], "-p", "-u", "d", "-z", [True, c_allfiles_Synseq_log[i]] ] )
+	sfle.sop( pE, "python", [ [c_fileProgGemReads], "-R", [c_allpaths_Checked[i]], "-a", [fileInConverted], "-n", c_Reads_No, "-l", "d", "-m", [c_fileInputErrModel], "-c", "-q", "33", "-o", [True, c_allfiles_Synseq_fir[i]], "-O", [True, c_allfiles_Synseq_sec[i]], "-p", "-u", "d", "-z", [True, c_allfiles_Synseq_log[i]] ] )
 	#Default( [c_allfiles_Synseq_fir[i], c_allfiles_Synseq_sec[i], c_allfiles_Synseq_log[i]] )
 
 	#Consider about how to running picard
