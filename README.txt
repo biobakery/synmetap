@@ -119,3 +119,31 @@ To deal with this issue, we are performing one filtering procedure to delete the
 too short contigs in the input genome files. This is usually necessary for the
 draft genome files which are always highly fragmented. The threshold for
 length is user-defined.
+
+2. Sequencing simulation
+
+We use GemSIM (doi:10.1186/1471-2164-13-74) to carry out the simulation of
+Illumina sequencing. GemSIM is composed of several separate scripts and the
+specific script we implement in our pipeline is GemReads.py. This script can
+simulate both single genome or metagenome sequencing result. In this pipeline,
+the script is working under metagenomic mode by default.
+
+The relative abundance will be treaded as abundance of real bugs rather than
+sequences belong to each bug. So for two bugs whose genomes have large
+distinction in length, even if their relative abundance is the same, the
+fraction of sequences belong to each bug can be very different.
+
+3. Gold standard files generate
+
+3.1 Bugs abundance gold standard file
+
+This is the input file.
+
+3.2 Genes abundance file
+
+This is done by reading the annotation files in IMG dataset for each input
+bug. We count the frequency of all different KO's in each bug recorded in the
+annotation file and normalize this count by the relative abundance. The
+resulting relative abundance of each KO in the community is the sum of all the
+individual bug's normalized KO frequency. This relative abundance can be
+normalized by arbitrary positive real number.
