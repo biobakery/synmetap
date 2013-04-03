@@ -16,16 +16,16 @@ Constant and file definitions.
 #============User-defined constant===============
 
 #Number of synthesized reads
-c_Reads_No			= "1000"
+c_Reads_No				= 1000
 
 #Minimum contig length
-c_Min_Contig_Len			= "840"
+c_Min_Contig_Len		= 840
 
 #path to genome sequence files
-c_pathInputGenomeDir		= "/n/CHB/data/synthetic_metagenomes/genomes"
+c_pathInputGenomeDir	= "/n/CHB/data/synthetic_metagenomes/genomes"
 
 #path to annotation files
-c_pathKO			= "/n/CHB/data/IMG_v350/img_w_v350"
+c_pathKO				= "/n/CHB/data/IMG_v350/img_w_v350"
 
 #============Script-generated constant================
 
@@ -67,11 +67,15 @@ c_path_Gene			= sfle.d( fileDirOutput, "Gene" )
 c_allfiles_Gene			= [sfle.d( pE, c_path_Gene, sfle.rebase( fileInAbun ) ) for fileInAbun in c_allfiles_InputAbundRef]
 
 #Log files
-c_allfiles_Converted_log = [sfle.d( pE, fileDirOutput, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_convert.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
-c_allfiles_Checked_log = [sfle.d( pE, fileDirOutput, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_check.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
-c_allfiles_Synseq_log = [sfle.d( pE, fileDirOutput, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_syn.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
-c_allfiles_Synseq_remove_log = [sfle.d( pE, fileDirOutput, "Log", sfle.rebase( fileInAbun, ".txt"), sfle.rebase( fileInAbun, ".txt", "_syn_remove.log" ) ) for fileInAbun in c_allfiles_InputAbundRef ]
-
+c_allfiles_Converted_log, c_allfiles_Checked_log, c_allfiles_Synseq_log, c_allfiles_Synseq_remove_log = ([] for i in xrange( 4 ))
+for fileInAbun in c_allfiles_InputAbundRef:
+	strBase = sfle.d( fileDirOutput, "Log", sfle.rebase( fileInAbun, ".txt" ), sfle.rebase( fileInAbun, ".txt" ) )
+	for astrLogs, strSuff in (
+		(c_allfiles_Converted_log, "convert"),
+		(c_allfiles_Checked_log, "check"),
+		(c_allfiles_Synseq_log, "syn"),
+		(c_allfiles_Synseq_remove_log, "syn_remove")):
+		astrLogs.append( sfle.d( pE, strBase + "_" + strSuff + ".log" ) )
 
 """
 Processing module 1
@@ -85,17 +89,10 @@ Output: Converted GemSIM compatible abundance files, short contig filtered genom
 """
 #Convert raw input abundance files
 for i, fileInRef in enumerate( c_allfiles_InputAbundRef ):
-	sfle.op( pE, c_fileProgConvert, [ "-i", [fileInRef], "-r", [c_fileInputTaxon], "-o", [True, c_allfiles_Converted[i]], "-l", [True, c_allfiles_Converted_log[i]] ] )
-
-#Check genome files
-for i, fileConverted in enumerate( c_allfiles_Converted ):
-	#If I denote Checked_log as an output in the c_fileProgCheck pipeline
-	#Every time when adding in a new raw input file, we should run scons
-	#twice before everything appears up to date.
-	#So I use this trick to get rid of this. Do not know the mechanism
-	#making above issue.
-	sfle.sop( pE, "echo >", [ [True, c_allfiles_Checked_log[i]] ] )
-	sfle.op( pE, c_fileProgCheck, [ "-i", [fileConverted], "-g", [c_pathInputGenomeDir], "-o", [True, c_allpaths_Checked[i]], "-l", [c_allfiles_Checked_log[i]], "-n", c_Min_Contig_Len ] )
+	sfle.op( pE, c_fileProgConvert, ["-i", [fileInRef], "-r", [c_fileInputTaxon], "-o", [True, c_allfiles_Converted[i]],
+		"-l", [True, c_allfiles_Converted_log[i]] ] )
+	sfle.op( pE, c_fileProgCheck, ["-i", [c_allfiles_Converted[i]], "-g", c_pathInputGenomeDir, "-o", c_allpaths_Checked[i],
+		"-l", [True, c_allfiles_Checked_log[i]], "-n", c_Min_Contig_Len ] )
 
 """
 Processing module 2
@@ -112,17 +109,21 @@ for i, fileInConverted in enumerate( c_allfiles_Converted ):
 
 	#Run GemRead.py script
 	#named rby1.py for I tweak the raw script a little
-	sfle.sop( pE, "python", [ [c_fileProgGemReads], "-R", [c_allpaths_Checked[i]], "-a", [fileInConverted], "-n", c_Reads_No, "-l", "d", "-m", [c_fileInputErrModel], "-c", "-q", "33", "-o", [True, c_allfiles_Synseq_fir[i]], "-O", [True, c_allfiles_Synseq_sec[i]], "-p", "-u", "d", "-z", [True, c_allfiles_Synseq_log[i]] ] )
-	#Default( [c_allfiles_Synseq_fir[i], c_allfiles_Synseq_sec[i], c_allfiles_Synseq_log[i]] )
+	sfle.sop( pE, "python", [[c_fileProgGemReads], "-R", c_allpaths_Checked[i], "-a", [fileInConverted],
+		"-n", c_Reads_No, "-l", "d", "-m", [c_fileInputErrModel], "-c", "-q", 33, "-o", [True, c_allfiles_Synseq_fir[i]],
+		"-O", [True, c_allfiles_Synseq_sec[i]], "-p", "-u", "d", "-z", [True, c_allfiles_Synseq_log[i]] ] )
+	Depends( c_allfiles_Synseq_log[i], c_allfiles_Checked_log[i] )
 
 	#Consider about how to running picard
 	#Generate compressed BAM files
-	Depends( sfle.sop( pE, "java", [ "-jar", [c_fileProgPicard], "F1=", [c_allfiles_Synseq_fir[i]], "F2=", [c_allfiles_Synseq_sec[i]], "V=Standard", "SM=GemSim", "O=", [True, c_allfiles_Synseq_BAM[i]] ] ), c_allfiles_Synseq_fir[i] )
+	sfle.sop( pE, "java", ["-jar", [c_fileProgPicard], "F1=", [c_allfiles_Synseq_fir[i]], "F2=", [c_allfiles_Synseq_sec[i]],
+		"V=Standard", "SM=GemSim", "O=", [True, c_allfiles_Synseq_BAM[i]] ] )
 	Default( c_allfiles_Synseq_BAM[i] )
 	
 	#Delete fastq files from GemReads.py (rby1.py)
 	#Might cause dependency issue but now haven't encounter
-	#Depends( sfle.sop( pE, "rm -f -v", [ [c_allfiles_Synseq_fir[i]], [c_allfiles_Synseq_sec[i]], "|", [True, c_allfiles_Synseq_remove_log[i]] ] ), c_allfiles_Synseq_BAM[i] )
+	#Depends( sfle.scmd( pE, "rm -f", c_allfiles_Synseq_remove_log[i],
+	#	[[c_allfiles_Synseq_fir[i]], [c_allfiles_Synseq_sec[i]]] ), c_allfiles_Synseq_BAM[i] )
 	#Default( c_allfiles_Synseq_remove_log[i] )
 
 """
@@ -137,6 +138,5 @@ Output: gold standard files for genes, pathways and modules (under construction)
 
 #Generating gold standard files for genes
 for i, fileInConverted in enumerate( c_allfiles_Converted ):
-	sfle.op( pE, c_fileProgKO, [ "-i", [fileInConverted], "-k", c_pathKO, "-o", [True, c_allfiles_Gene[i]] ] )
+	sfle.op( pE, c_fileProgKO, ["-i", [fileInConverted], "-k", c_pathKO, "-o", [True, c_allfiles_Gene[i]] ] )
 	Default( c_allfiles_Gene[i] )
-

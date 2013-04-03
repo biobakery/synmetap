@@ -2,25 +2,25 @@
 
 import argparse
 import csv
+import sys
 
 #generate final normalized gene abundance
 def ko_counter_raw( ref_path, ko_path ):
 	#ref_path: path for bugs abundance files
 	try:
-		fileIn_ref = open( ref_path, 'r' )
+		fileIn_ref = open( ref_path, 'rU' )
 	except IOError:
-		print "Cannot open input converted abundance file."
-
-	csv_reader_ref = csv.reader( fileIn_ref, csv.excel_tab )	
+		sys.stderr.write( "Cannot open input converted abundance file.\n" )
+		raise
 
 	#Ko_dict stores final normalized genes abundance
 	hashKo = {}
 	#ko_path is the path of folder for img annotation data
-	if ko_path[-1] != '/':
-		strKo_path_out = ko_path + '/'
+	strKo_path_out = ko_path
+	if strKo_path_out[-1] != '/':
+		strKo_path_out += '/'
 
-	for astrLine_ref in csv_reader_ref:
-
+	for astrLine_ref in csv.reader( fileIn_ref, csv.excel_tab ):
 		strBugID =  astrLine_ref[0].split('.')[0]
 		strKo_path_in = strBugID + '/' + strBugID + '.ko.tab.txt'
 		strKo_full_path = strKo_path_out + strKo_path_in
@@ -28,13 +28,13 @@ def ko_counter_raw( ref_path, ko_path ):
 		dKo_abun = float( astrLine_ref[1] )
 
 		try:
-			fileIn_Ko = open( strKo_full_path, 'r' )
+			fileIn_Ko = open( strKo_full_path, 'rU' )
 		except IOError:
-			print "Cannot open input ko.tab.txt file."
-		csv_reader_Ko = csv.reader( fileIn_Ko, csv.excel_tab )
+			sys.stderr.write( "Cannot open input ko.tab.txt file.\n" )
+			raise
 				
 		iKo_head = 0
-		for astrLine_Ko in csv_reader_Ko:
+		for astrLine_Ko in csv.reader( fileIn_Ko, csv.excel_tab ):
 			iKo_head += 1
 			if astrLine_Ko and iKo_head > 1:
 				strKoID = astrLine_Ko[9].split(":")[1]
@@ -54,7 +54,8 @@ def norm_hash( hashKo, out_path ):
 	try:
 		fileOut = open( out_path, 'w' )
 	except IOError:
-		print "Cannot access output KO abundance file."
+		sys.stderr.write( "Cannot access output KO abundance file.\n" )
+		raise
 
 	csv_writer_out = csv.writer( fileOut, csv.excel_tab )
 	csv_writer_out.writerows( tKo_abun_norm )

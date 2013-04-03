@@ -9,13 +9,15 @@ import argparse
 def del_short_contig( strfileIn, strfileOut, iMinLen ):
 	
 	try:
-		fileIn = open( strfileIn, "r" )
+		fileIn = open( strfileIn, "rU" )
 	except IOError:
-		print "Cannot open IMG genome file."
+		sys.stderr.write( "Cannot open IMG genome file.\n" )
+		raise
 	try:
 		fileOut = open( strfileOut, "w" )
 	except IOError:
-		print "Cannot access output checked file."
+		sys.stderr.write( "Cannot access output checked file.\n" )
+		raise
 		
 	ishort = 0
 	iseqs = 0
@@ -23,17 +25,16 @@ def del_short_contig( strfileIn, strfileOut, iMinLen ):
 	fWrite = False 
 		
 	for strLine in fileIn:
-		strLine = strLine.strip()
-		if ( strLine and re.search( r'^>', strLine ) ):
+		if ( strLine.strip() and re.search( r'^>', strLine ) ):
 			iseqs += 1
 			fWrite = False
 			if strLine_cache:
 				ishort += 1
-			strLine_cache = ( strLine + "\n" )
+			strLine_cache = strLine
 		elif fWrite:
-			fileOut.write( strLine + "\n" )
+			fileOut.write( strLine )
 		else:
-			strLine_cache += ( strLine + "\n" )
+			strLine_cache += strLine
 			if len( "".join( strLine_cache.split("\n")[1:] ) ) > iMinLen:
 				fileOut.write( strLine_cache )
 				strLine_cache = ""
@@ -81,13 +82,12 @@ def _main():
 	try:
 		refFile = open( args.input_ref, "r" )
 	except IOError:
-		print "Cannot open input converted abundance file!"
-
-	csv_ref_in = csv.reader( refFile, csv.excel_tab )
+		sys.stderr.write( "Cannot open input converted abundance file!\n" )
+		raise
 	
 	aastrLog.append( ["IMG Taxon ID", "# Total Contigs", "# Short Contigs"] )
 
-	for astrLine in csv_ref_in:
+	for astrLine in csv.reader( refFile, csv.excel_tab ):
 		
 		strinput_Genome = rawGenome_path + astrLine[0]
 		stroutput_Genome = checkedGenome_path + astrLine[0]
