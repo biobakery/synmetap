@@ -30,7 +30,7 @@ c_pathKO				= "/n/CHB/data/IMG_v350/img_w_v350"
 #============Script-generated constant================
 
 #IMG dataset taxonomy table file
-c_fileInputTaxon		= sfle.d( pE, fileDirInput, "Taxontable_demo" )
+c_fileInputTaxon		= sfle.d( pE, fileDirInput, "taxontable" )
 
 #Error model file
 c_fileInputErrModel		= sfle.d( pE, fileDirInput, "ill100v5_p.gzip" )

@@ -53,7 +53,6 @@ def search_name( hashTaxon, strInput, strOutput ):
 		sys.stderr.write( "Cannot access output converted file.\n" )
 		raise
 	
-	print hashTaxon[("clostridium",)]
 	aastrOut = []
 	aastrLog = [["Input Name", "IMG ID", "IMG Name", "IMG Status"]]
 	for astrLine in csv.reader( fileIn, csv.excel_tab ):
@@ -62,7 +61,6 @@ def search_name( hashTaxon, strInput, strOutput ):
 			strBug, strAbun = astrLine
 			astrBug = strBug.lower().split( " " )
 			tBug = tuple( astrBug[:2] ) + tuple( [" ".join( astrBug[2:] )] ) if len( astrBug ) > 2 else tuple( astrBug[:2] )
-			print tBug
 			astrInfo = hashTaxon.get( tBug, [] )
 			if astrInfo:
 				aastrOut.append( [astrInfo[0] + ".fna", strAbun] )
