@@ -1,18 +1,18 @@
-g_Acetobacter|sp_pasteurianus	0.5
-g_Brucella|sp_ceti	0.5
-g_Methanoculleus|sp_marisnigri	0.5
-g_Lactobacillus|sp_fructivorans	0.5
-g_Legionella|sp_pneumophila	0.5
-g_Propionibacterium|sp_freudenreichii	0.5
-g_Corynebacterium|sp_aurimucosum	0.5
-g_Chthoniobacter|sp_flavus	0.5
-g_Clostridium|sp_ramosum	0.5
-g_Vibrio|sp_parahaemolyticus	0.5
-g_Arthrospira	0.5
-g_Dehalococcoides	0.5
-g_Shewanella	0.5
-g_Bacillus|sp_halodurans	0.5
-g_Rhizobium|sp_etli|str_Brasil 5	0.5
-g_Staphylococcus|sp_aureus|str_aureus	0.5
-g_Geobacter|sp_sulfurreducens|str_KN400	0.5
-g_Coprobacillus|sp_sp.|str_D7	0.5
+Acetobacter pasteurianus	0.5
+Brucella ceti	0.5
+Methanoculleus marisnigri	0.5
+Lactobacillus fructivorans	0.5
+Legionella pneumophila	0.5
+Propionibacterium freudenreichii	0.5
+Corynebacterium aurimucosum	0.5
+Chthoniobacter flavus	0.5
+Vibrio parahaemolyticus	0.5
+Arthrospira	0.5
+Dehalococcoides	0.5
+Shewanella	0.5
+Bacillus halodurans	0.5
+Rhizobium etli Brasil 5	0.5
+Geobacter sulfurreducens KN400	0.5
+Coprobacillus bacterium D7	0.5
+Escherichia coli	0.2
+Bacillus subtilis	0.7

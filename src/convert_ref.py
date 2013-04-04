@@ -6,102 +6,73 @@ import sys
 import csv
 import re
 
-alevel = ["Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Strain"]
-
-def parse_taxon_table_new( taxon_path ):
+def parse_taxon_table( table_path ):
 	
 	try:
-		fileIn_taxa = open( taxon_path, "r" )
+		fileIn_table = open( table_path, "rU" )
 	except IOError:
-		print("Cannot open taxonomy table file!")
+		sys.stderr.write( "Cannot open IMG genome files.\n" )
+		raise
 	
-	csv_in_taxa = csv.reader( fileIn_taxa, csv.excel_tab )
-	hashhashhashTaxon = {}
+	hashTaxon = {}
 	fHead = True
 
-	for astrLine in csv_in_taxa:
+	for astrLine in csv.reader( fileIn_table, csv.excel_tab ):
 		if fHead:
 			fHead = False
 			continue
+		elif astrLine:
+			astrInfo, strG, strSp, strSt = [[astrLine[0], astrLine[3], astrLine[2]]] + [strTmp.lower() for strTmp in astrLine[12:15]]
+			strG, strSp, strSt = [ " ".join( [ strWord for strWord in strInd.split( " " ) if strWord != "candidatus"] ) for strInd in [strG, strSp, strSt] ]
+			#if len( strSp.split(" ") ) > 1:
+				#print strSp
 
-		#and is necessary for we want to get
-		#rid of entry without IMG taxon ID
-		#This ID is in astrLine[0]
-		if astrLine and astrLine[0]:
-			hashLine = {}	
-			hashLine["ID"] = astrLine[0]
-			hashLine["Name"] = astrLine[3]
-			hashLine["Status"] = astrLine[2]
-			hashLine["Domain"] = astrLine[1]
-			hashLine["Phylum"] = astrLine[8]
-			hashLine["Class"] = astrLine[9]
-			hashLine["Order"] = astrLine[10]
-			hashLine["Family"] = astrLine[11]
-			hashLine["Genus"] = astrLine[12]
-			hashLine["Species"] = astrLine[13]
-			hashLine["Strain"] = astrLine[14]
+			tKey = ()
+			for strTmp in [strG, strSp, strSt]:
+				if ( not strTmp ) or ( strTmp == "unclassified" ):
+					break
+				else:
+					tKey += (strTmp,)	
+					astrValue = hashTaxon.get( tKey, [] )
+					if ( not astrValue ) or ( astrValue[2] != "Finished" and astrInfo[2] == "Finished" ):
+						hashTaxon[tKey] = astrInfo
+	return hashTaxon
+				
 
-			for level in alevel:
-				hashhashTaxon = hashhashhashTaxon.setdefault( level, {} )
-				#Get rid of some special keywords which do not
-				#represent a unique clade. unclassified is most
-				#usual. sp. cf. bacterium happen in species
-				#colums.
-				if hashLine[level] and ( "unclassified" not in hashLine[level].lower() ) and ( hashLine[level] != "sp." ) and ( hashLine[level] != "cf." ) and ( hashLine[level] != "bacterium" ):
-					hashTaxon = hashhashTaxon.setdefault( hashLine[level], {} )
-					if ( hashTaxon and hashTaxon["Status"].lower() == "draft" and hashLine["Status"].lower() == "finished" ) or ( not hashTaxon ):
-						hashTaxon["Name"] = hashLine["Name"]
-						hashTaxon["Status"] = hashLine["Status"]
-						hashTaxon["ID"] = hashLine["ID"]
-
-	return hashhashhashTaxon
-
-def search_name_new( abun_path, hashhashhashTaxon, out_path ):
+def search_name( hashTaxon, strInput, strOutput ):
 	
-	aastrLog = []
 	try:
-		fileIn_abun =  open( abun_path, "r" )
+		fileIn = open( strInput, "rU" )
 	except IOError:
-		print "Cannot open input abundance file!"
-
-	out_path = os.path.abspath( out_path )
-        strOut_base = os.path.basename( out_path )
-        strOut_path = os.path.dirname( out_path )
-        if not os.path.exists( strOut_path ):
-                os.makedirs( strOut_path )
+		sys.stderr.write( "Cannot open input abundance file.\n" )
+		raise
+	
 	try:
-        	fileOut_abun = open ( out_path, "w" )
+		fileOut = open( strOutput, "w" )
 	except IOError:
-		print "Cannot access output abundance file!"
+		sys.stderr.write( "Cannot access output converted file.\n" )
+		raise
+	
+	print hashTaxon[("clostridium",)]
+	aastrOut = []
+	aastrLog = [["Input Name", "IMG ID", "IMG Name", "IMG Status"]]
+	for astrLine in csv.reader( fileIn, csv.excel_tab ):
 
-	csv_reader_in = csv.reader( fileIn_abun, csv.excel_tab )
-	csv_writer_out = csv.writer( fileOut_abun, csv.excel_tab )
-
-	hashLevel = {"d":"Domain", "p":"Phylum", "c":"Class", "o":"Order", "f":"Family", "g":"Genus", "sp": "Species", "str":"Strain"}
-
-	aastrLog.append( ["Input Name", "IMG genome name", "IMG taxon ID", "IMG status"] )
-	for astrLine in csv_reader_in:
 		if astrLine:
-			strBug = astrLine[0]
-			strAbun = astrLine[1]
-
-			strBug_level = hashLevel[ strBug.split("|")[-1].split("_")[0] ]
-			strBug_name = strBug.split("|")[-1].split("_")[1:][0]
-			
-			hashhashTaxon = hashhashhashTaxon.setdefault( strBug_level, {} )
-			#use regular expression to search some tricky strain or
-			#species names contain in raw input. Here can only han-
-			#dle strBug_name is a subset of key and shouldn't be
-			#part of a word.
-			ahashInfo = [ hashhashTaxon[key] for key in hashhashTaxon.keys() if ( re.search( r'(^| )' + strBug_name + r'($| )', key  ) ) ]			
-			hashInf = ahashInfo[0] if ahashInfo else {}
-
-			if hashInf:
-				csv_writer_out.writerow( [hashInf["ID"] + ".fna", strAbun] )
-				aastrLog.append( [strBug, hashInf["Name"], hashInf["ID"], hashInf["Status"]] )
+			strBug, strAbun = astrLine
+			astrBug = strBug.lower().split( " " )
+			tBug = tuple( astrBug[:2] ) + tuple( [" ".join( astrBug[2:] )] ) if len( astrBug ) > 2 else tuple( astrBug[:2] )
+			print tBug
+			astrInfo = hashTaxon.get( tBug, [] )
+			if astrInfo:
+				aastrOut.append( [astrInfo[0] + ".fna", strAbun] )
+				aastrLog.append( [strBug] + astrInfo )
 			else:
-				raise Exception( "Bug " + strBug + " does not have IMG genome!" )
-	
+				raise Exception( "Cannot find " + strBug + "!" )
+
+	csv_writer_Con = csv.writer( fileOut, csv.excel_tab )
+	csv_writer_Con.writerows( aastrOut )
+
 	return aastrLog
 
 def _main():
@@ -113,8 +84,8 @@ def _main():
 
 	args = parser.parse_args()
 
-	hashhashhashTaxon = parse_taxon_table_new( args.ref_taxa )
-	aastrLog = search_name_new( args.input_ref, hashhashhashTaxon, args.output_ref )
+	hashTaxon = parse_taxon_table( args.ref_taxa )
+	aastrLog = search_name( hashTaxon, args.input_ref, args.output_ref )
 	
 	csv.writer( open( args.strLog, "w" ), csv.excel_tab ).writerows( aastrLog )
 	csv.writer( sys.stdout, csv.excel_tab ).writerows( aastrLog )
