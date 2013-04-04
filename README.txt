@@ -34,9 +34,14 @@ You shall put your relative abundance files in input folder.
 
 Format
 1) Tab-delimited plain text files with two columns.
-2) First column is the name of bugs, usually this should be a name specifying
-the level of each name file with an abbreviate word plus underscore as prefix.
-See attached example. This requirement might be removed in future.
+2) First column is the name of bugs. The phylogenetic levels you can put here
+are genus, species and strain. The name is simply the space delimited human
+readable name for the bugs. 
+*NOTICE*: You should not skip a father level before specifying the child level 
+(e.g. give a name with genus level and strain level but without species level). 
+You should not abbreviate the name in any level (e.g. using E. coli instead of
+Escherichia coli). All bad-formatted name will not get a hit from the IMG
+taxontable.
 3) Second column is the relative abundance for each bug. It should be the
 fraction of each bug in the community or normalized by some constant.
 
