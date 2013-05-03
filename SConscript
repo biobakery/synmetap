@@ -35,6 +35,9 @@ c_fileInputTaxon		= sfle.d( pE, fileDirInput, "taxontable" )
 #Error model file
 c_fileInputErrModel		= sfle.d( pE, fileDirInput, "ill100v5_p.gzip" )
 
+#Module structure file
+c_fileInModulep			= sfle.d( pE, fileDirInput, "modulep" )
+
 #Input user-defined relative abundance files
 c_allfiles_InputAbundRef	= Glob( sfle.d( fileDirInput, "*.txt" ) )
 
@@ -44,6 +47,7 @@ c_fileProgKO			= sfle.d( pE, sfle.c_strDirSrc, "ko_counter.py" )
 c_fileProgCheck			= sfle.d( pE, sfle.c_strDirSrc, "check_contig.py")
 c_fileProgGemReads		= sfle.d( pE, sfle.c_strDirSrc, "rby_test1.py" )
 c_fileProgPicard		= sfle.d( pE, sfle.c_strDirSrc, "FastqToSam.jar")
+c_fileProgPathab		= sfle.d( pE, sfle.c_strDirSrc, "pathab.py" )
 
 #Converted ref files
 c_pathConvertedref		= sfle.d( fileDirTmp, "Converted" )
@@ -64,7 +68,9 @@ c_allfiles_Synseq_BAM		= [sfle.d( pE, c_path_Synseq, sfle.rebase( fileInAbun, ".
 
 #Gene abundance gold standard files
 c_path_Gene			= sfle.d( fileDirOutput, "Gene" )
+c_path_Module			= sfle.d( fileDirOutput, "Module" )
 c_allfiles_Gene			= [sfle.d( pE, c_path_Gene, sfle.rebase( fileInAbun ) ) for fileInAbun in c_allfiles_InputAbundRef]
+c_allfiles_Module		= [sfle.d( pE, c_path_Module, sfle.rebase( fileInAbun ) ) for fileInAbun in c_allfiles_InputAbundRef]
 
 #Log files
 c_allfiles_Converted_log, c_allfiles_Checked_log, c_allfiles_Synseq_log, c_allfiles_Synseq_remove_log = ([] for i in xrange( 4 ))
@@ -138,5 +144,6 @@ Output: gold standard files for genes, pathways and modules (under construction)
 
 #Generating gold standard files for genes
 for i, fileInConverted in enumerate( c_allfiles_Converted ):
-	sfle.op( pE, c_fileProgKO, ["-i", [fileInConverted], "-k", c_pathKO, "-o", [True, c_allfiles_Gene[i]] ] )
-	Default( c_allfiles_Gene[i] )
+	sfle.op( pE, c_fileProgKO, ["-i", [fileInConverted], "-k", c_pathKO, "-o", [True, c_allfiles_Gene[i]]] )
+	sfle.pipe( pE, c_allfiles_Gene[i], c_fileProgPathab, c_allfiles_Module[i], ["-s", [c_fileInModulep]] )
+	Default( c_allfiles_Module[i] )
