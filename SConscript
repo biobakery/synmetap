@@ -22,10 +22,10 @@ c_Reads_No				= 1000
 c_Min_Contig_Len		= 840
 
 #path to genome sequence files
-c_pathInputGenomeDir	= "/n/CHB/data/synthetic_metagenomes/genomes"
+c_pathInputGenomeDir	= "/n/huttenhower_lab_nobackup/downloads/IMG_v350/fna/"
 
 #path to annotation files
-c_pathKO				= "/n/CHB/data/IMG_v350/img_w_v350"
+c_pathKO				= "/n/huttenhower_lab_nobackup/downloads/IMG_v350/img_w_v350"
 
 #============Script-generated constant================
 
