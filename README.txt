@@ -12,15 +12,40 @@ Several user-defined constants can be modified within Sconscript.
 
 1. Nunbmer of synthesized reads per community.
 
-2. Input reference genomes and gene annotation files path.
-This path should contain fasta files for genomes' sequence and corresponding 
-gene annotation files. We use an IMG dataset to drive the pipeline, so the
-file names should be compatible with the IMG taxon id which can be found in
-the IMG taxontable we distributed. This table is located at
-input/Taxontable_demo. Users can replace it and details can be found below. We
-highly recommend you use the IMG dataset.
+2. Path to the folder(s) containing reference genomes.
+The folder(s) should contain genome sequences in .fna format. Names of files in
+the folder(s) should be unique and linked with a certain genome. File
+_input/taxontable_ should contain this mapping info. Multiple folders are accepted and they should be given as comma-delimited string. The first folder containing the desired genome will be used.
 
-3. Minimum length of contigs that can be kept in the checked genome sequnence
+*Note* The folder(s) here are usually published large datasets like IMG
+dataset. If you want to add several unpublished genomes, we recommend you to place the fna files in _input/user_genome_.
+
+Example structure of the folder:
+<Your genome sequences folder>
+-- genome1.fna
+-- genome2.fna
+-- ...
+
+3. Path to the folder(s) containing KO gene annotation info.
+The folder(s) should contain the KO gene annotation info for each genome present
+in the input genome sequences folder(s). Each genome has a folder containing
+different annotation infos (include but not restrict to KO annotation). Names of folders should be the same with names of correpsonding genome sequences files. Multiple folders are accepted. It is highly recommended if each folder contains exactly the same genomes as in each input geonme sequences folder.
+
+*Note* In each folder, names of KO annotation files should have the same format:<genome_id>.ko.tab.txt. Annotation files for the genomes located in _input/user_genome/_ should also be placed there with the same genome id as folder names.
+
+Example structure of the folder:
+ <Your gene annotation infos folder>
+- genome1
+-- annotation_ko.tab.txt
+-- annotation_cog.tab.txt
+-- ...
+- genome2
+-- annotation_ko.tab.txt
+-- annotation_cog.tab.txt
+-- ...
+- ...
+
+4. Minimum length of contigs that can be kept in the checked genome sequnence
 data.
 
 Input files
@@ -51,12 +76,20 @@ Example community abundance files can be found in input/abunRef_demo.txt.
 2. IMG taxonomy table
 We distribute this table (input/Taxontable_demo) which is compatible with our 
 test IMG genomes dataset. You may want to change it if you use a different 
-genomes datasets. This table is used to map taxonomy names to file names in 
+genomes dataset. This table is used to map taxonomy names to file names in 
 the dataset (either genome sequence file or gene annotation files). Be aware 
-that if your table's format is not the same of input/Taxontable_demo, our 
+that if your table's format is not the same as input/Taxontable_demo, our 
 pipeline will fail due to inability to map correctly.
 
+Columns used by the pipeline are columns 1, 3, 4, 13-15. They record the id
+(used as file names for genome sequences and annotation files), complete
+status (Finished, Draft, Permenant draft), human readable name (usually genus
++ species + strain names) and genus, species, strain names respectively. Other
+entries can be empty.
+
 We use IMG dataset version 3.5 updated in summer 2012.
+
+*Note* Feel free to add several entries in this table to map genomes not present in IMG dataset but you want to add by yourself. Columns needed for this are 1, 3, 4, 13-15.
 
 3. Error model
 Optionally, users can also supply an error model file as input. This should be
@@ -67,6 +100,25 @@ please refering to GemSIM homepage (http://sourceforge.net/projects/gemsim/).
 We have distributed an error model file within our repository. You can find it
 in input/ill100v5_p.gzip. It is based on aligned Illumina sequencing data. More
 details can be found in GemSIM paper (doi:10.1186/1471-2164-13-74).
+
+4. User-provide genomes
+Some newly sequenced genomes might not be published and if you have access to
+them and want to use them, you can place them directly in the folder
+_input/user_genome_. If you also want the pipeline generate gold standard gene
+and module abundacne tables (see below for details), you need to provide KO
+annotation files as well for these genomes. Annotation files should be placed
+in folder with the same base name as the sequence file.
+
+Example folder structure:
+user_genome
+- genome1.fna
+- genome1
+-- genome1.ko.tab.txt
+-- ...
+- genom2.fna
+-- genome2.ko.tab.txt
+-- ...
+- ...
 
 Output files
 =================

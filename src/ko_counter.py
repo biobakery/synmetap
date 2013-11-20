@@ -3,9 +3,10 @@
 import argparse
 import csv
 import sys
+import os
 
 #generate final normalized gene abundance
-def ko_counter_raw( ref_path, ko_path ):
+def ko_counter_raw( ref_path, ako_path ):
 	#ref_path: path for bugs abundance files
 	try:
 		fileIn_ref = open( ref_path, 'rU' )
@@ -16,14 +17,19 @@ def ko_counter_raw( ref_path, ko_path ):
 	#Ko_dict stores final normalized genes abundance
 	hashKo = {}
 	#ko_path is the path of folder for img annotation data
-	strKo_path_out = ko_path
-	if strKo_path_out[-1] != '/':
-		strKo_path_out += '/'
 
 	for astrLine_ref in csv.reader( fileIn_ref, csv.excel_tab ):
 		strBugID =  astrLine_ref[0].split('.')[0]
 		strKo_path_in = strBugID + '/' + strBugID + '.ko.tab.txt'
-		strKo_full_path = strKo_path_out + strKo_path_in
+
+		strKo_full_path = ""
+		for ko_path in ako_path:
+			strKo_full_path = ko_path + strKo_path_in
+			if os.path.isfile( strKo_full_path ):
+				break
+		if not strKo_full_path:
+			sys.stderr.write( "Cannot find input annotation file.\n" )
+			raise
 
 		dKo_abun = float( astrLine_ref[1] )
 
@@ -65,10 +71,11 @@ def _main():
 	parser = argparse.ArgumentParser( description = 'Generate community specified gold standard gene abundance files.' )
 	parser.add_argument( "-i", metavar = "input_abun_file", dest = "input_ref", required = True, help = "Input converted abundance file" )
 	parser.add_argument( "-o", metavar = "output_abun_file", dest = "output_ko", required = True, help = "Output gene abundance gold standard file" )
-	parser.add_argument( "-k", metavar = "input_anno_file", dest = "ko_path", required = True, help = "Path to input gene annotation files" )
+	parser.add_argument( "-k", metavar = "input_anno_file", dest = "ko_path", required = True, help = "Path(s) to input gene annotation files. Multiple paths should be delimited by commas without any whitespaces" )
 	args = parser.parse_args()
 
-	hashKo = ko_counter_raw( args.input_ref, args.ko_path )
+	ako_path = map( lambda x: x + "/" if x[-1] != "/" else x, args.ko_path.split( "," ) )
+	hashKo = ko_counter_raw( args.input_ref, ako_path )
 	norm_hash( hashKo, args.output_ko )
 
 if __name__ == "__main__":

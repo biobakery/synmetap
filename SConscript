@@ -21,10 +21,11 @@ c_Reads_No				= 1000
 #Minimum contig length
 c_Min_Contig_Len		= 840
 
-#path to genome sequence files
-c_pathInputGenomeDir	= "/n/huttenhower_lab_nobackup/downloads/IMG_v350/fna/"
+#path to genome sequence files, usually published databases. Multiple paths should be delimited by commas without whitespaces
+#c_pathInputGenomeDir	= "/test/good,/n/huttenhower_lab_nobackup/downloads/IMG_v350/fna/"
+c_pathInputGenomeDir = "/n/huttenhower_lab_nobackup/downloads/IMG_v350/img_w_v350"
 
-#path to annotation files
+#path to KO gene annotation files, usually published databases. Multiple pathes should be delimited by commas without whitespaces
 c_pathKO				= "/n/huttenhower_lab_nobackup/downloads/IMG_v350/img_w_v350"
 
 #============Script-generated constant================
@@ -37,6 +38,11 @@ c_fileInputErrModel		= sfle.d( pE, fileDirInput, "ill100v5_p.gzip" )
 
 #Module structure file
 c_fileInModulep			= sfle.d( pE, fileDirInput, "modulep" )
+
+#Input folder contains user-provide genome files (no associated with any published data bases) and associated KO gene annotation files
+c_pathInputGenomeDir_user	= sfle.d( pE, fileDirInput, "user_genome" ).entry_abspath( "" )
+c_pathInputGenomeDir 		= ",".join( [c_pathInputGenomeDir, c_pathInputGenomeDir_user] ).strip( "," )
+c_pathKO 			= ",".join( [c_pathKO, c_pathInputGenomeDir_user] ).strip( "," )
 
 #Input user-defined relative abundance files
 c_allfiles_InputAbundRef	= Glob( sfle.d( fileDirInput, "*.txt" ) )
@@ -142,8 +148,10 @@ Input: converted GemSIM compatible abundance files, IMG gene annotation files
 Output: gold standard files for genes, pathways and modules (under construction) relative abundance.
 """
 
-#Generating gold standard files for genes
+#Uncomment below part to generate gold standard files for genes and abundances
+"""
 for i, fileInConverted in enumerate( c_allfiles_Converted ):
 	sfle.op( pE, c_fileProgKO, ["-i", [fileInConverted], "-k", c_pathKO, "-o", [True, c_allfiles_Gene[i]]] )
 	sfle.pipe( pE, c_allfiles_Gene[i], c_fileProgPathab, c_allfiles_Module[i], ["-s", [c_fileInModulep]] )
 	Default( c_allfiles_Module[i] )
+"""
