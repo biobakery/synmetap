@@ -8,8 +8,8 @@ Boyu Ren and Curtis Huttenhower
 Table of Contents
 -----------------
 
-A. Introduction to SynMetaP
-B. Related Projects and Scripts
+A. Introduction to SynMetaP  
+B. Related Projects and Scripts  
 
 # A. Introduction to SynMetaP
 
