@@ -26,6 +26,7 @@
 
 
 import sys
+import re
 import getopt
 import random
 import numpy
@@ -826,11 +827,15 @@ def main(argv):
         cRef=comDict[hd] 
         readOri[hd]+=1
         refLen=len(ref)
+
+	#added by rby
+	#get rid of whitespaces in fastq headers
+	hd_formatted = re.sub( r'\s+', '_', hd )
 	
         if not paired:
             readLen=length()
             read1,pos,dir,quals1=readGen1(ref,cRef,refLen,readLen,genDict[refFile](),readLen,mx1,insDict,delDict,gQList,bQList,iQList,qual,circular,hd)
-            head1='@'+'r'+str(count)+'_from_'+hd+'_#0/1\n'
+            head1='@'+'r'+str(count)+'_from_'+hd_formatted+'_#0/1\n'
         else:
             val=random.random()
             ln1=length()
@@ -840,7 +845,8 @@ def main(argv):
             else:
                 inter=int(random.normalvariate(mean,stdv))
 
-	    #Here is the place the script would pause if the input genome is too small. It would make refLen too small so that the condition below will never be met.
+	    #Here is the place the script would pause if the input genome is too small.
+	    #In this case, refLen is too small so that the condition below will never be met.
             while (inter+ln1+ln2) > refLen*.9 or inter<ln1*1.5:
                 if mean=='emp':
                     inter=interval()
@@ -866,8 +872,8 @@ def main(argv):
                 p1='*'
                 p2=pos+inter-ln2+1
 	    
-            head1='@'+'r'+str(count)+'_from_'+hd+'_ln'+str(inter)+'_#0/1\n'
-            head2='@'+'r'+str(count)+'_from_'+hd+'_ln'+str(inter)+'_#0/2\n'
+            head1='@'+'r'+str(count)+'_from_'+hd_formatted+'_ln'+str(inter)+'_#0/1\n'
+            head2='@'+'r'+str(count)+'_from_'+hd_formatted+'_ln'+str(inter)+'_#0/2\n'
         out1.write(head1)
         out1.write(read1+'\n')
         out1.write('+\n')

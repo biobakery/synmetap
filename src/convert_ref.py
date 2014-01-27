@@ -22,7 +22,7 @@ def parse_taxon_table( table_path ):
 			fHead = False
 			continue
 		elif astrLine:
-			astrInfo, strG, strSp, strSt = [[astrLine[0], astrLine[3], astrLine[2]]] + [strTmp.lower() for strTmp in astrLine[12:15]]
+			astrInfo, strG, strSp, strSt = [[astrLine[0], astrLine[3], astrLine[2], int( astrLine[-1] )]] + [strTmp.lower() for strTmp in astrLine[12:15]]
 			strG, strSp, strSt = [ " ".join( [ strWord for strWord in strInd.split( " " ) if strWord != "candidatus"] ) for strInd in [strG, strSp, strSt] ]
 			#if len( strSp.split(" ") ) > 1:
 				#print strSp
@@ -32,9 +32,10 @@ def parse_taxon_table( table_path ):
 				if ( not strTmp ) or ( strTmp == "unclassified" ):
 					break
 				else:
-					tKey += (strTmp,)	
+					tKey += (strTmp,)
 					astrValue = hashTaxon.get( tKey, [] )
-					if ( not astrValue ) or ( astrValue[2] != "Finished" and astrInfo[2] == "Finished" ):
+					#prioritize user defined genomes, then finished database genomes, then unfinished/draft database genomes
+					if ( not astrValue ) or ( astrValue[2] != "Finished" and astrInfo[2] == "Finished" and astrValue[3] == astrInfo[3] ) or ( astrValue[3] == 0 and astrInfo[3] == 1 ):
 						hashTaxon[tKey] = astrInfo
 	return hashTaxon
 				

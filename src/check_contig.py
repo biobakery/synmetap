@@ -54,17 +54,15 @@ def _main():
 	#Use argparser.
 	parser = argparse.ArgumentParser( description = "Check genomes files and filtered out too short contigs. No short contig means creating symlink to the raw file. Filtered genome will be placed in the path users can specify." )
 	parser.add_argument( "-i", metavar = "input_ref", dest = "input_ref", required = True, help = "input converted abundance files" )
-	parser.add_argument( "-g", metavar = "genome_ref_path", dest = "rawGenome_path", required = True, help = "input path(s) to IMG reference genome files" )
-	parser.add_argument( "-o", metavar = "output_checked", dest = "checkedGenome_path", required = True, help = "path to output checked required genome files")
+	parser.add_argument( "-g", metavar = "genome_ref_path", dest = "rawGenome_path", required = True, help = "input path to reference genome database" )
+	parser.add_argument( "-G", metavar = "user_genome_ref_path", dest = "rawUserGenome_path", required = True, help = "input path to user-provided genome files" )
+	parser.add_argument( "-o", metavar = "output_checked", dest = "checkedGenome_path", required = True, help = "path to output checked required genome files" )
 	parser.add_argument( "-l", metavar = "log_file", dest = "log", required= True, help = "output log file" )
 	parser.add_argument( "-n", metavar = "min_length", dest = "imin", type = int, required = True, help = "minimal contig length" )
 
 	args = parser.parse_args()	
 	
-	arawGenome_path = map( lambda x: x+"/" if x[-1] != "/" else x, args.rawGenome_path.split(",") )
-	checkedGenome_path = args.checkedGenome_path
-	if checkedGenome_path[-1] != "/":
-		checkedGenome_path += "/" 
+	rawGenome_path, rawUserGenome_path, checkedGenome_path = map( lambda x: x + "/", [args.rawGenome_path, args.rawUserGenome_path, args.checkedGenome_path] )
 	
 	aastrLog = []
 	
@@ -81,16 +79,14 @@ def _main():
 	
 	aastrLog.append( ["IMG Taxon ID", "# Total Contigs", "# Short Contigs"] )
 	for astrLine in csv.reader( refFile, csv.excel_tab ):
-		strinput_Genome = ""
-		for rawGenome_path in arawGenome_path:
+		#prioritize files from user-provided folder
+		try:
+			strinput_Genome = rawUserGenome_path + astrLine[0]
+			open( strinput_Genome )
+		except IOError:
 			strinput_Genome = rawGenome_path + astrLine[0]
-			if os.path.isfile( strinput_Genome ):
-				break
-		if not strinput_Genome:
-			sys.stderr.write( "Cannot find genome reference file!\n" )
-			raise
-
 		stroutput_Genome = checkedGenome_path + astrLine[0]
+
 		if os.path.exists( stroutput_Genome ):
 			os.remove( stroutput_Genome )
 
