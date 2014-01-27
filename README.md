@@ -10,151 +10,138 @@ Table of Contents
 
 A. Introduction to SynMetaP  
 B. Related Projects and Scripts  
+C. Installing SynMetaP  
+D. SynMetaP Inputs  
+E. SynMetaP Outputs  
+F. 
 
 # A. Introduction to SynMetaP
 
-SynMetaP is a [sfle project](http://huttenhower.sph.harvard.edu/sfle/output/sphinx/index.html) used to simulate metagenomic sequencing data from Illumina platform for user-defined microbial communities. The major task of this pipeline is to generate synthetic metagenomic data while whole genome sequencing data can also be created. Using sfle to drive, you should place this project in sfle/input folder as an independent subfolder.
+SynMetaP is a [SflE](http://huttenhower.sph.harvard.edu/sfle/output/sphinx/index.html) project used to simulate shotgun metagenomic sequencing data from next-generation sequencing platforms for user-defined microbial communities. It also calculates gold-standard gene and functional contents abundance for the communities if requested. The simuation process is based on an algorithm [GemSIM](http://sourceforge.net/projects/gemsim/) using realistic error-model summarized from sequencing data of certain platforms.
 
-User-defined constant
-========================
+# B. Related Projects and Scripts
 
-Several user-defined constants can be modified within Sconscript.
+[SflE]((http://huttenhower.sph.harvard.edu/sfle/output/sphinx/index.html) is the framework for the SynMetaP. It helps building a stable pipeline to automatically convert the raw input data into useful results. More details can be found in their project homepage.
 
-1. Nunbmer of synthesized reads per community.
+[GemSIM](http://sourceforge.net/projects/gemsim/) is the core for this pipeline. This project can summarize an error-model of certain sequencing platforms from the real sequencing data and further utilize this model to reconstruct synthetic shotgun sequencing results for known genomes or metagenomes. More details can be found in their project homepage.
 
-2. Path to the folder(s) containing reference genomes.
-The folder(s) should contain genome sequences in .fna format. Names of files in
-the folder(s) should be unique and linked with a certain genome. File
-_input/taxontable_ should contain this mapping info. Multiple folders are accepted and they should be given as comma-delimited string. The first folder containing the desired genome will be used.
+[Picard](http://picard.sourceforge.net/) comprises Java-based command-line utitilities that manipulate SAM files. Since the synthetic data from GemSIM are formated as fastq, they are with huge volume and not easy to transfer. We use Picard to convert the fastq files into unaligned bam files to significantly reduce their sizes. The script we use is [FastqToSam](http://picard.sourceforge.net/command-line-overview.shtml#FastqToSam).
 
-*Note* The folder(s) here are usually published large datasets like IMG
-dataset. If you want to add several unpublished genomes, we recommend you to place the fna files in _input/user_genome_.
+# C. Installing SynMetaP
 
-Example structure of the folder:
-<Your genome sequences folder>
--- genome1.fna
--- genome2.fna
--- ...
+SynMetaP is formulated as a [SflE](http://huttenhower.sph.harvard.edu/sfle/output/sphinx/index.html) project. You need to install the SflE before using SynMetaP. Installation documents can be found [here](http://huttenhower.sph.harvard.edu/sfle/output/sphinx/index.html#download).
 
-3. Path to the folder(s) containing KO gene annotation info.
-The folder(s) should contain the KO gene annotation info for each genome present
-in the input genome sequences folder(s). Each genome has a folder containing
-different annotation infos (include but not restrict to KO annotation). Names of folders should be the same with names of correpsonding genome sequences files. Multiple folders are accepted. It is highly recommended if each folder contains exactly the same genomes as in each input geonme sequences folder.
+Once you have configured SflE successfully, no other prequisites are needed. You can clone the whole SynMetaP repository into `sfle/input` folder. To run SynMetaP, you should use the command:
 
-*Note* In each folder, names of KO annotation files should have the same format:<genome_id>.ko.tab.txt. Annotation files for the genomes located in _input/user_genome/_ should also be placed there with the same genome id as folder names.
+scons output/synmetap
 
-Example structure of the folder:
- <Your gene annotation infos folder>
-- genome1
--- annotation_ko.tab.txt
--- annotation_cog.tab.txt
--- ...
-- genome2
--- annotation_ko.tab.txt
--- annotation_cog.tab.txt
--- ...
-- ...
+Noting that you should type it in the root directory of SflE.
 
-4. Minimum length of contigs that can be kept in the checked genome sequnence
-data.
+# D. SynMetaP Inputs
 
-Input files
-==================
+There are only one required input file for users per community. It should be placed in the folder `sfle/input/synmetap/input`. The name of the file will be used to identify the results for the community in the output folders. Other inputs are either provided in the project or should be downloaded from the official database. The details are listed below:
 
-1. Relative abundance files for community (required)
-The only input files that should be provided by users are the abundance files.
+### 1\. Microbial community composition files (required)
+The files should be tab-delimited text files with ".txt" extension. In each file, two columns are found. The first column is the name of organisms that are present in the community and the second column is the relative abundance of it. The relative abundances can also be normalized by a constant for one community. Below are some details of format requirements:
 
-Where to put it
-You shall put your relative abundance files in input folder.
+i.  We only need genus level, species level and strain level phylogenetic information for the names of the orgasims.
+ii. They should be space delimited and the first two fields will be taken as the genus and species of the organism and the rest will be taken as the strain name.
+iii. You should not skip the father level before specifying a child level. Not all three levels are required.
+iv. No abbreviation is accepted.
 
-Format
-1) Tab-delimited plain text files with two columns.
-2) First column is the name of bugs. The phylogenetic levels you can put here
-are genus, species and strain. The name is simply the space delimited human
-readable name for the bugs. 
-*NOTICE*: You should not skip a father level before specifying the child level 
-(e.g. give a name with genus level and strain level but without species level). 
-You should not abbreviate the name in any level (e.g. using E. coli instead of
-Escherichia coli). All bad-formatted name will not get a hit from the IMG
-taxontable.
-3) Second column is the relative abundance for each bug. It should be the
-fraction of each bug in the community or normalized by some constant.
+Here are some examples:
+Escherichia (accepted)
+Escherichia coli (accepted)
+Escherichia coli ABU 83972 (accepted)
+Escherichia ABU 83972 (not accepted)
+E. coli (not accepted)
 
-Example
-Example community abundance files can be found in input/abunRef_demo.txt.
+You can find a complete example in `metasynp/input/abunRef_demo.txt`.
 
-2. IMG taxonomy table
-We distribute this table (input/Taxontable_demo) which is compatible with our 
-test IMG genomes dataset. You may want to change it if you use a different 
-genomes dataset. This table is used to map taxonomy names to file names in 
-the dataset (either genome sequence file or gene annotation files). Be aware 
-that if your table's format is not the same as input/Taxontable_demo, our 
-pipeline will fail due to inability to map correctly.
+###2\. Reference genomes dataset
 
-Columns used by the pipeline are columns 1, 3, 4, 13-15. They record the id
-(used as file names for genome sequences and annotation files), complete
-status (Finished, Draft, Permenant draft), human readable name (usually genus
-+ species + strain names) and genus, species, strain names respectively. Other
-entries can be empty.
+We use Intergrated Microbial Genomes(IMG) dataset version 3.5 updated in summer 2012. Unfortunately, IMG ftp server is no longer publicly available so for those users who do not have access to this dataset and would like to use it, please contact [Boyu Ren](bor158@mail.harvard.edu).
 
-We use IMG dataset version 3.5 updated in summer 2012.
+Technically speaking, the reference genomes dataset is only a collection of files recording the DNA sequences of genomes of certain organisms. The IMG dataset uses fna files to store the sequences information. The details for the format of such sequences files can be found [here](http://en.wikipedia.org/wiki/FASTA_format). IMG dataset also contains gene annotation files for each genome it holds, these are required when you want to calculate the gold-standard abundances of genes and functional units in the communities.
 
-*Note* Feel free to add several entries in this table to map genomes not present in IMG dataset but you want to add by yourself. Columns needed for this are 1, 3, 4, 13-15.
+If users have newly assembled genomes that are not published but are desired to use as the references, these genomes sequences should be placed in `metasynp/input/user_genome`. The accompanied gene annotation files should be placed in the same folder.
 
-3. Error model
-Optionally, users can also supply an error model file as input. This should be
-generated by GemErr.py and should be a collection of information in some real
-sequencing data. For details of generating the error model data by GemErr,
-please refering to GemSIM homepage (http://sourceforge.net/projects/gemsim/).
+The name of each sequences file should be unique (referred as <taxon_id> below) with extension ".fna" and the accompanied annotation files should be placed in a folder with the same name (<taxon_id>). If you have annotation files for one genome with different annotation systems, the names should indicate the systems:
 
-We have distributed an error model file within our repository. You can find it
-in input/ill100v5_p.gzip. It is based on aligned Illumina sequencing data. More
-details can be found in GemSIM paper (doi:10.1186/1471-2164-13-74).
+	<taxon_id>.gff - Tab delimited GFF3 format for genes.
+	<taxon_id>.cog.tab.txt - Tab delimited file for COG annotation.
+	<taxon_id>.kog.tab.txt - Tab delimited file for KOG annotation.
+	<taxon_id>.pfam.tab.txt - Tab delimited file for Pfam annotation.
+	<taxon_id>.tigrfam.tab.txt - Tab delimited file for TIGRFAM annotation.
+	<taxon_id>.ipr.tab.txt - Tab delimited file for "other" (Non-Pfam/TIGRFAM) InterPro hits.
+	<taxon_id>.ko.txt - Tab delimited file for KO and EC annotation.
+	<taxon_id>.signalp.txt - Tab delimited file for signal peptide annotation.
+	<taxon_id>.tmhmm.txt - Tab delimited file for transmembrane helices.
 
-4. User-provide genomes
-Some newly sequenced genomes might not be published and if you have access to
-them and want to use them, you can place them directly in the folder
-_input/user_genome_. If you also want the pipeline generate gold standard gene
-and module abundacne tables (see below for details), you need to provide KO
-annotation files as well for these genomes. Annotation files should be placed
-in folder with the same base name as the sequence file.
+Currently we only use KO and EC annotation files for the calculation of gold-standard abundances of genes and functional units.
 
-Example folder structure:
-user_genome
-- genome1.fna
-- genome1
--- genome1.ko.tab.txt
--- ...
-- genom2.fna
--- genome2.ko.tab.txt
--- ...
-- ...
+### 3\. Taxonomy mapping table
 
-Output files
-=================
+We include this table (`metasynp/input/Taxontable_demo`) in the pipeline. It is distributed with 
+the IMG genomes dataset. It maps the name of an organism to a qualified genome and further the <taxon_id> for this genome. It also has some additional information to help determine which genome should be picked when multiple genomes satisfy the name of an input organism. The fields of the table that are used in the pipeline are taxon_oid, Status, Genome Name, Genus, Species, Strain and User Provided. The details for these fields are listed below:
+	
+	taxon_oid - Unique name for a genome, it is the same with the name of the fna file and gene annotation files.
+	Status - Whether the genome is finished or still in draft, accepted values are "Finished", "Draft" and "Permanent Draft".
+	Genome Name - Human-readable names for the genomes.
+	Genus, Species, Strain - Names of the genus, species and strain for the genome.
+	User Provided - Whether the genome is a user-provide novel genome.
+	
+Users are welcomed to add new entries to this table and all they need to fill in are the columns listed above. Please do not modify the existed contents.
 
-1. Synthesized sequencing data
+### 4\. Error model
+
+Optionally, users can also supply an error model file generated by GemSIM(GemErr.py) to replace the one we distributed for Illumina GA IIx with TrueSeq SBS Kit v5-GA (`metasynp/ill100v5_p.gzip`). Since the error model is highly sensitive to the sequencing platforma as well as the kit, you should replace it when the targeting platform is not the same as Illumina-v5. Details for generating customized error models can be found [here](http://sourceforge.net/projects/gemsim/files/?source=navbar).
+
+### 5\. Pipeline driving script
+
+For each SflE project, there should be a driving script specifying how the workflow should proceed. It is in the folder `synmetap` with name `SConscript` and contains several user-defined constants that can be modified if needed. Below is a list of all paramters that you can modify to make the pipeline compatible with your data and goal. They are written in the very beginning in `synmetap/SConscript`.
+
+**c_Reads_No**
+
+This is the number of resulting sequences. You can see it as the number of sequences that are successfully sequenced by the sequencer.
+
+**c_Min_Contig_Len**
+
+This is a constant to define minimum size of contigs that will be preserved in the genome sequences file. It is necessary due to technical issue of GemSIM and to circumvent it we have to filter out contigs that are too short. A number larger than 350 is recommended.
+
+**c_pathInputGenomeDir**
+
+This is the directory of all fna files of genomes from a large publicly available dataset (e.g. IMG).
+
+**c_pathKO**
+
+This is the directory containing the folders of KO gene annotation information for the genomes present in the above directory.
+
+You can also comment out all lines in "Processing module 3" if you do not want to calculate the gold-standard abundance of genes and functional units of the communities. Please do not modify all the other contents in this script.
+
+# E. Output files
+
+### 1\. Synthesized sequencing data
+
 We set the sequencing producing paired-end reads as default. The output files
 for each input community are two fastq files with _fir and _sec identifiers 
 and a compressed BAM file.
 
-2. Gold standard files for genes, pathways and modules
+### 2\. Gold standard files for genes, pathways and modules
+
 Currently we only generate gold standard abundance files for genes. You can
 find them in output/Gene. We will add files for pathways and modules in
 near future.
 
-3. Log files
-Log files contain some important information concerning taxonomy name mapping
-and synthesizing sequencing process. You can find them in output/Log.
-_convert.log is for name mapping, _check.log is for short contigs check and
-_synseq.log is for sythesizing process.
+### 3\. Log files
 
-Details of pipeline
-========================
+Log files contain some important information concerning taxonomy name mapping and synthesizing sequencing process. You can find them in output/Log. *_convert.log is for name mapping, *_check.log is for short contigs filtering and *_synseq.log is for sythesizing process.
 
-1. Intermediate processes:
+### F. Details of the pipeline
 
-1.1 Convert user given abundance files into GemReads compatible abundance
+### 1\. Intermediate processes:
+
+#### 1.1 Convert user given abundance files into GemReads compatible abundance
 files
 
 The GemReads compatible abundance file is very similar to the user-defined
@@ -163,7 +150,7 @@ sequence files in the input database. Since the users always want to specify
 the real name of the bugs, we will do this mapping in the pipeline so the
 GemReads can be drived correctly.
 
-1.2 Check genome sequence files
+#### 1.2 Check genome sequence files
 
 Normally, the genome sequence files can contain more than one sequence. In
 this case, they are called contigs. The length for the contigs in one sequence
@@ -191,7 +178,7 @@ too short contigs in the input genome files. This is usually necessary for the
 draft genome files which are always highly fragmented. The threshold for
 length is user-defined.
 
-2. Sequencing simulation
+### 2\. Sequencing simulation
 
 We use GemSIM (doi:10.1186/1471-2164-13-74) to carry out the simulation of
 Illumina sequencing. GemSIM is composed of several separate scripts and the
@@ -204,13 +191,13 @@ sequences belong to each bug. So for two bugs whose genomes have large
 distinction in length, even if their relative abundance is the same, the
 fraction of sequences belong to each bug can be very different.
 
-3. Gold standard files generate
+### 3\. Gold standard files generate
 
-3.1 Bugs abundance gold standard file
+#### 3.1 Bugs abundance gold standard file
 
 This is the input abundance file.
 
-3.2 Genes abundance file
+#### 3.2 Genes abundance file
 
 This is done by reading the annotation files in IMG dataset for each input
 bug. We count the frequency of all different KO's in each bug recorded in the
