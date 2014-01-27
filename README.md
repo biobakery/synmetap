@@ -1,9 +1,19 @@
-Synthetic Metagenomics Simulator v 1.1 April 2013
+SynMetaP User Guide v1.1
+========================
 
-This pipeline is used to simulate illumina shotgun sequencing data. The major
-task of this pipeline is to generate metagenomic data while whole genome
-sequencing data can also be created. Using sfle to drive, you should place
-this project in sfle/input folder as an independent subfolder.
+January 2014
+
+Boyu Ren and Curtis Huttenhower
+
+Table of Contents
+-----------------
+
+A. Introduction to SynMetaP
+B. Related Projects and Scripts
+
+# A. Introduction to SynMetaP
+
+SynMetaP is a [sfle project](http://huttenhower.sph.harvard.edu/sfle/output/sphinx/index.html) used to simulate metagenomic sequencing data from Illumina platform for user-defined microbial communities. The major task of this pipeline is to generate synthetic metagenomic data while whole genome sequencing data can also be created. Using sfle to drive, you should place this project in sfle/input folder as an independent subfolder.
 
 User-defined constant
 ========================

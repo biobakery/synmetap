@@ -21,12 +21,12 @@ c_Reads_No				= 1000
 #Minimum contig length
 c_Min_Contig_Len		= 840
 
-#path to genome sequence files, usually published databases. Multiple paths should be delimited by commas without whitespaces
-#c_pathInputGenomeDir	= "/test/good,/n/huttenhower_lab_nobackup/downloads/IMG_v350/fna/"
-c_pathInputGenomeDir = "/n/huttenhower_lab_nobackup/downloads/IMG_v350/img_w_v350"
+#path to genome sequence files, usually published databases
+c_pathInputGenomeDir = "/n/huttenhower_lab_nobackup/downloads/IMG_v350/fna"
 
-#path to KO gene annotation files, usually published databases. Multiple pathes should be delimited by commas without whitespaces
+#path to KO gene annotation files, usually distributed with the genome sequences
 c_pathKO				= "/n/huttenhower_lab_nobackup/downloads/IMG_v350/img_w_v350"
+
 
 #============Script-generated constant================
 
@@ -39,10 +39,8 @@ c_fileInputErrModel		= sfle.d( pE, fileDirInput, "ill100v5_p.gzip" )
 #Module structure file
 c_fileInModulep			= sfle.d( pE, fileDirInput, "modulep" )
 
-#Input folder contains user-provide genome files (no associated with any published data bases) and associated KO gene annotation files
+#Input folder contains user-provide genome files (not associated with any published data bases) and associated KO gene annotation files
 c_pathInputGenomeDir_user	= sfle.d( pE, fileDirInput, "user_genome" ).entry_abspath( "" )
-c_pathInputGenomeDir 		= ",".join( [c_pathInputGenomeDir, c_pathInputGenomeDir_user] ).strip( "," )
-c_pathKO 			= ",".join( [c_pathKO, c_pathInputGenomeDir_user] ).strip( "," )
 
 #Input user-defined relative abundance files
 c_allfiles_InputAbundRef	= Glob( sfle.d( fileDirInput, "*.txt" ) )
@@ -51,7 +49,7 @@ c_allfiles_InputAbundRef	= Glob( sfle.d( fileDirInput, "*.txt" ) )
 c_fileProgConvert		= sfle.d( pE, sfle.c_strDirSrc, "convert_ref.py" )
 c_fileProgKO			= sfle.d( pE, sfle.c_strDirSrc, "ko_counter.py" )
 c_fileProgCheck			= sfle.d( pE, sfle.c_strDirSrc, "check_contig.py")
-c_fileProgGemReads		= sfle.d( pE, sfle.c_strDirSrc, "rby_test1.py" )
+c_fileProgGemReads		= sfle.d( pE, sfle.c_strDirSrc, "GemReads_modified.py" )
 c_fileProgPicard		= sfle.d( pE, sfle.c_strDirSrc, "FastqToSam.jar")
 c_fileProgPathab		= sfle.d( pE, sfle.c_strDirSrc, "pathab.py" )
 
@@ -103,7 +101,7 @@ Output: Converted GemSIM compatible abundance files, short contig filtered genom
 for i, fileInRef in enumerate( c_allfiles_InputAbundRef ):
 	sfle.op( pE, c_fileProgConvert, ["-i", [fileInRef], "-r", [c_fileInputTaxon], "-o", [True, c_allfiles_Converted[i]],
 		"-l", [True, c_allfiles_Converted_log[i]] ] )
-	sfle.op( pE, c_fileProgCheck, ["-i", [c_allfiles_Converted[i]], "-g", c_pathInputGenomeDir, "-o", c_allpaths_Checked[i],
+	sfle.op( pE, c_fileProgCheck, ["-i", [c_allfiles_Converted[i]], "-g", c_pathInputGenomeDir, "-G", c_pathInputGenomeDir_user, "-o", c_allpaths_Checked[i],
 		"-l", [True, c_allfiles_Checked_log[i]], "-n", c_Min_Contig_Len ] )
 
 """
@@ -120,7 +118,6 @@ Output: synthesized sequences files
 for i, fileInConverted in enumerate( c_allfiles_Converted ):
 
 	#Run GemRead.py script
-	#named rby1.py for I tweak the raw script a little
 	sfle.sop( pE, "python", [[c_fileProgGemReads], "-R", c_allpaths_Checked[i], "-a", [fileInConverted],
 		"-n", c_Reads_No, "-l", "d", "-m", [c_fileInputErrModel], "-c", "-q", 33, "-o", [True, c_allfiles_Synseq_fir[i]],
 		"-O", [True, c_allfiles_Synseq_sec[i]], "-p", "-u", "d", "-z", [True, c_allfiles_Synseq_log[i]] ] )
@@ -149,9 +146,7 @@ Output: gold standard files for genes, pathways and modules (under construction)
 """
 
 #Uncomment below part to generate gold standard files for genes and abundances
-"""
-for i, fileInConverted in enumerate( c_allfiles_Converted ):
-	sfle.op( pE, c_fileProgKO, ["-i", [fileInConverted], "-k", c_pathKO, "-o", [True, c_allfiles_Gene[i]]] )
-	sfle.pipe( pE, c_allfiles_Gene[i], c_fileProgPathab, c_allfiles_Module[i], ["-s", [c_fileInModulep]] )
-	Default( c_allfiles_Module[i] )
-"""
+#for i, fileInConverted in enumerate( c_allfiles_Converted ):
+#	sfle.op( pE, c_fileProgKO, ["-i", [fileInConverted], "-k", c_pathKO, "-o", [True, c_allfiles_Gene[i]]] )
+#	sfle.pipe( pE, c_allfiles_Gene[i], c_fileProgPathab, c_allfiles_Module[i], ["-s", [c_fileInModulep]] )
+#	Default( c_allfiles_Module[i] )
