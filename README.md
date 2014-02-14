@@ -104,6 +104,9 @@ For each SflE project, there should be a driving script specifying how the workf
 	**c_Reads_No**
 
 	This is the number of resulting sequences. You can see it as the number of sequences that are successfully sequenced by the sequencer.
+	**c_Read_Len**
+	
+	This is the read length of each single read (either the forward read or the backward read). It accepts an integer within certain range or a single character "d". The range of the accepted integers is determined by the error model. Since the error model is derived based on real sequencing data with a given read length, the simulation cannot reconstruct sequencing data from plateforms with longer output sequence length.
 
 	**c_Min_Contig_Len**
 
