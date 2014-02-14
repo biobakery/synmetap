@@ -18,6 +18,12 @@ Constant and file definitions.
 #Number of synthesized reads
 c_Reads_No				= 1000
 
+#Length of each simulated read
+c_Read_Len			= "d"
+				  #"d" for empirical distribution
+				  #or can be any integer within the range
+				  #contrained by the error model
+
 #Minimum contig length
 c_Min_Contig_Len		= 840
 
@@ -119,7 +125,7 @@ for i, fileInConverted in enumerate( c_allfiles_Converted ):
 
 	#Run GemRead.py script
 	sfle.sop( pE, "python", [[c_fileProgGemReads], "-R", c_allpaths_Checked[i], "-a", [fileInConverted],
-		"-n", c_Reads_No, "-l", "d", "-m", [c_fileInputErrModel], "-c", "-q", 33, "-o", [True, c_allfiles_Synseq_fir[i]],
+		"-n", c_Reads_No, "-l", c_Read_Len, "-m", [c_fileInputErrModel], "-c", "-q", 33, "-o", [True, c_allfiles_Synseq_fir[i]],
 		"-O", [True, c_allfiles_Synseq_sec[i]], "-p", "-u", "d", "-z", [True, c_allfiles_Synseq_log[i]] ] )
 	Depends( c_allfiles_Synseq_log[i], c_allfiles_Checked_log[i] )
 
