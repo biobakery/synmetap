@@ -16,7 +16,7 @@ Constant and file definitions.
 #============User-defined constant===============
 
 #Number of synthesized reads
-c_Reads_No				= 1000
+c_Reads_No				= 5000000
 
 #Length of each simulated read
 c_Read_Len			= "d"
@@ -25,7 +25,7 @@ c_Read_Len			= "d"
 				  #contrained by the error model
 
 #Minimum contig length
-c_Min_Contig_Len		= 840
+c_Min_Contig_Len		= 400
 
 #path to genome sequence files, usually published databases
 c_pathInputGenomeDir = "/n/huttenhower_lab_nobackup/downloads/IMG_v350/fna"

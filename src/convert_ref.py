@@ -57,7 +57,6 @@ def search_name( hashTaxon, strInput, strOutput ):
 	aastrOut = []
 	aastrLog = [["Input Name", "IMG ID", "IMG Name", "IMG Status"]]
 	for astrLine in csv.reader( fileIn, csv.excel_tab ):
-
 		if astrLine:
 			strBug, strAbun = astrLine
 			astrBug = strBug.lower().split( " " )
