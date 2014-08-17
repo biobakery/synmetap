@@ -27,7 +27,7 @@ hg clone ssh://hg@bitbucket.org/biobakery/sfle
 Clone SynMetaP and put it in the input folder of sfle:
 ```
 cd sfle/input
-hg clone ssh://hg@bitbucket.org/CibioCM/synmetap
+hg clone ssh://hg@bitbucket.org/Boyur/synmetap
 ```
 
 Test whether SynMetaP works:
@@ -57,9 +57,8 @@ abunRef_demo_sec.fastq
 
 **Modify for your purposes:**
 
-1. Put the reference genome files in the input/synmetap/data folder.
-2. Add the abundance files that you want to use for generating the synthetic read files in the input/synmetap/input/ folder.
-3. Rerun scons with: scons output/synmetap
+1. Add the abundance files that you want to use for generating the synthetic read files in the input/synmetap/user_genome folder.
+2. Rerun scons with: scons output/synmetap
 
 For more details, please read the following sections.
 
@@ -104,7 +103,7 @@ Escherichia coli ABU 83972 (accepted)
 Escherichia ABU 83972 (not accepted)
 E. coli (not accepted)
 
-You can find a complete example in `metasynp/input/abunRef_demo.txt`.
+You can find a complete example in `synmetap/input/abunRef_demo.txt`.
 
 ###2\. Reference genomes dataset
 
