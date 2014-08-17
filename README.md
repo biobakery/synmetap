@@ -3,7 +3,7 @@ SynMetaP User Guide v1.1
 
 January 2014
 
-Duy Tin Truong, Boyu Ren and Curtis Huttenhower
+Boyu Ren, Duy Tin Truong and Curtis Huttenhower
 
 Table of Contents
 ------------------
