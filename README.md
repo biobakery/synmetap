@@ -3,23 +3,71 @@ SynMetaP User Guide v1.1
 
 January 2014
 
-Boyu Ren and Curtis Huttenhower
+Duy Tin Truong, Boyu Ren and Curtis Huttenhower
 
 Table of Contents
------------------
+------------------
 
-A. Introduction to SynMetaP  
-B. Related Projects and Scripts  
-C. Installing SynMetaP  
-D. SynMetaP Inputs  
-E. SynMetaP Outputs  
-F. 
+A. Quick Start    
+B. Introduction to SynMetaP  
+C. Related Projects and Scripts  
+D. Installing SynMetaP  
+E. SynMetaP Inputs  
+F. SynMetaP Outputs  
+G. Details of the Pipeline 
 
-# A. Introduction to SynMetaP
+# A. Quick Start
+To set up the script, please use the following commands:
+
+Clone sfle:
+```
+hg clone ssh://hg@bitbucket.org/biobakery/sfle
+```
+
+Clone SynMetaP and put it in the input folder of sfle:
+```
+cd sfle/input
+hg clone ssh://hg@bitbucket.org/CibioCM/synmetap
+```
+
+Test whether SynMetaP works:
+```
+cd ..
+scons output/synmetap
+```
+
+If everything goes well, you will see the notice:
+```
+scons: done building targets.
+```
+In the output folder (under the sfle folder), you will see the following folders:
+```
+output/synmetap/Log
+output/synmetap/Synseq
+output/synmetap/tmp
+```
+
+Given the relative abundance file at input/synmetap/input/abunRef_demo.txt, 
+the corresponding synthetic read files produced under the output/synmetap/Synseq folder are:
+```
+abunRef_demo.bam  
+abunRef_demo_fir.fastq  
+abunRef_demo_sec.fastq
+```
+
+**Modify for your purposes:**
+
+1. Put the reference genome files in the input/synmetap/data folder.
+2. Add the abundance files that you want to use for generating the synthetic read files in the input/synmetap/input/ folder.
+3. Rerun scons with: scons output/synmetap
+
+For more details, please read the following sections.
+
+# B. Introduction to SynMetaP
 
 SynMetaP is a [SflE](http://huttenhower.sph.harvard.edu/sfle/output/sphinx/index.html) project used to simulate shotgun metagenomic sequencing data from next-generation sequencing platforms for user-defined microbial communities. It also calculates gold-standard gene and functional contents abundance for the communities if requested. The simuation process is based on an algorithm [GemSIM](http://sourceforge.net/projects/gemsim/) using realistic error-model summarized from sequencing data of certain platforms.
 
-# B. Related Projects and Scripts
+# C. Related Projects and Scripts
 
 [SflE]((http://huttenhower.sph.harvard.edu/sfle/output/sphinx/index.html) is the framework for the SynMetaP. It helps building a stable pipeline to automatically convert the raw input data into useful results. More details can be found in their project homepage.
 
@@ -27,7 +75,7 @@ SynMetaP is a [SflE](http://huttenhower.sph.harvard.edu/sfle/output/sphinx/index
 
 [Picard](http://picard.sourceforge.net/) comprises Java-based command-line utitilities that manipulate SAM files. Since the synthetic data from GemSIM are formated as fastq, they are with huge volume and not easy to transfer. We use Picard to convert the fastq files into unaligned bam files to significantly reduce their sizes. The script we use is [FastqToSam](http://picard.sourceforge.net/command-line-overview.shtml#FastqToSam).
 
-# C. Installing SynMetaP
+# D. Installing SynMetaP
 
 SynMetaP is formulated as a [SflE](http://huttenhower.sph.harvard.edu/sfle/output/sphinx/index.html) project. You need to install the SflE before using SynMetaP. Installation documents can be found [here](http://huttenhower.sph.harvard.edu/sfle/output/sphinx/index.html#download).
 
@@ -37,7 +85,7 @@ scons output/synmetap
 
 Noting that you should type it in the root directory of SflE.
 
-# D. SynMetaP Inputs
+# E. SynMetaP Inputs
 
 There are only one required input file for users per community. It should be placed in the folder `sfle/input/synmetap/input`. The name of the file will be used to identify the results for the community in the output folders. Other inputs are either provided in the project or should be downloaded from the official database. The details are listed below:
 
@@ -122,7 +170,7 @@ For each SflE project, there should be a driving script specifying how the workf
 
 You can also comment out all lines in "Processing module 3" if you do not want to calculate the gold-standard abundance of genes and functional units of the communities. Please do not modify all the other contents in this script.
 
-# E. Output files
+# F. Output files
 
 ### 1\. Synthesized sequencing data
 
@@ -140,7 +188,7 @@ near future.
 
 Log files contain some important information concerning taxonomy name mapping and synthesizing sequencing process. You can find them in output/Log. *_convert.log is for name mapping, *_check.log is for short contigs filtering and *_synseq.log is for sythesizing process.
 
-# F. Details of the pipeline
+# G. Details of the pipeline
 
 ### 1\. Intermediate processes:
 
