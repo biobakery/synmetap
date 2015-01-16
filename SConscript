@@ -16,7 +16,7 @@ Constant and file definitions.
 #============User-defined constant===============
 
 #Number of synthesized reads
-c_Reads_No				= 50
+c_Reads_No				= 100000
 
 #Length of each simulated read
 c_Read_Len			= "d"
@@ -24,20 +24,22 @@ c_Read_Len			= "d"
 				  #or can be any integer within the range
 				  #contrained by the error model
 
+# Error ststus (1: generated reads with error, 0: no error in reads) 
+c_Error_Status = 1
+
 #Minimum contig length
 c_Min_Contig_Len		= 400
 
 #path to genome sequence files, usually published databases
-c_pathInputGenomeDir = "/n/huttenhower_lab_nobackup/downloads/IMG_v350/fna"
+c_pathInputGenomeDir = ""
 
 #path to KO gene annotation files, usually distributed with the genome sequences
-c_pathKO				= "/n/huttenhower_lab_nobackup/downloads/IMG_v350/img_w_v350"
-
+c_pathKO				= "/home/rah/IMG_v350/img_w_v350"
 
 #============Script-generated constant================
 
 #IMG dataset taxonomy table file
-c_fileInputTaxon		= sfle.d( pE, fileDirInput, "taxontable" )
+c_fileInputTaxon		= sfle.d( pE, fileDirInput, "/home/rah/Hutlab/sfle/input/synmetap/input/taxontable" )
 
 #Error model file
 c_fileInputErrModel		= sfle.d( pE, fileDirInput, "ill100v5_p.gzip" )
@@ -46,10 +48,10 @@ c_fileInputErrModel		= sfle.d( pE, fileDirInput, "ill100v5_p.gzip" )
 c_fileInModulep			= sfle.d( pE, fileDirInput, "modulep" )
 
 #Input folder contains user-provide genome files (not associated with any published data bases) and associated KO gene annotation files
-c_pathInputGenomeDir_user	= sfle.d( pE, fileDirInput, "user_genome" ).entry_abspath( "" )
+c_pathInputGenomeDir_user	= sfle.d( pE, fileDirInput, "/home/rah/Hutlab/sfle/input/synmetap/input/user_genome" ).entry_abspath( "" )
 
 #Input user-defined relative abundance files
-c_allfiles_InputAbundRef	= Glob( sfle.d( fileDirInput, "*.txt" ) )
+c_allfiles_InputAbundRef	= Glob( sfle.d( fileDirInput, "/home/rah/Hutlab/sfle/input/synmetap/input/user_genome/abunRef_stool.txt" ) )
 
 #src scripts
 c_fileProgConvert		= sfle.d( pE, sfle.c_strDirSrc, "convert_ref.py" )
@@ -126,7 +128,7 @@ for i, fileInConverted in enumerate( c_allfiles_Converted ):
 	#Run GemRead.py script
 	sfle.sop( pE, "python", [[c_fileProgGemReads], "-R", c_allpaths_Checked[i], "-a", [fileInConverted],
 		"-n", c_Reads_No, "-l", c_Read_Len, "-m", [c_fileInputErrModel], "-c", "-q", 33, "-o", [True, c_allfiles_Synseq_fir[i]],
-		"-O", [True, c_allfiles_Synseq_sec[i]], "-p", "-u", "d", "-z", [True, c_allfiles_Synseq_log[i]] ] )
+		"-O", [True, c_allfiles_Synseq_sec[i]], "-p", "-u", "d", "-z", [True, c_allfiles_Synseq_log[i]], "-e", c_Error_Status] )
 	Depends( c_allfiles_Synseq_log[i], c_allfiles_Checked_log[i] )
 
 	#Consider about how to running picard

@@ -17,7 +17,7 @@ def parse_taxon_table( table_path ):
 	hashTaxon = {}
 	fHead = True
 
-	for astrLine in csv.reader( fileIn_table, csv.excel_tab ):
+	for astrLine in csv.reader( fileIn_table, csv.excel_tab):
 		if fHead:
 			fHead = False
 			continue
@@ -53,15 +53,16 @@ def search_name( hashTaxon, strInput, strOutput ):
 	except IOError:
 		sys.stderr.write( "Cannot access output converted file.\n" )
 		raise
-	
 	aastrOut = []
 	aastrLog = [["Input Name", "IMG ID", "IMG Name", "IMG Status"]]
 	for astrLine in csv.reader( fileIn, csv.excel_tab ):
+		print astrLine
 		if astrLine:
 			strBug, strAbun = astrLine
-			astrBug = strBug.lower().split( " " )
+			astrBug = strBug.lower().split( " ")
 			tBug = tuple( astrBug[:2] ) + tuple( [" ".join( astrBug[2:] )] ) if len( astrBug ) > 2 else tuple( astrBug[:2] )
 			astrInfo = hashTaxon.get( tBug, [] )
+			print tBug, astrInfo
 			if astrInfo:
 				aastrOut.append( [astrInfo[0] + ".fna", strAbun] )
 				aastrLog.append( [strBug] + astrInfo )

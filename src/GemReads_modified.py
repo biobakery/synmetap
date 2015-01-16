@@ -54,7 +54,8 @@ f=logging.Formatter("%(levelname)s %(asctime)s %(funcName)s %(lineno)d %(message
 h.setFormatter(f)
 rdlog.addHandler(h)
 """
-
+error_status = 1
+ 
 def getRef(refFile):
     """Returns a genome reference, and the length of that reference."""
     refDict={}
@@ -159,13 +160,16 @@ def readGen1(ref,cRef,refLen,readLen,genos,inter,mx1,insD1,delD1,gQ,bQ,iQ,qual,c
     ind=random.randint(0,(refLen-1))
     dir=random.randint(1,2)
     readPlus=int(readLen*1.5)
+    readLength = 0 # Added by Ali to keep the Length of read before any error
     if circular:
         if dir==1:
             end=ind+readPlus
             if end<=refLen:
                 read=ref[ind:end]
+                readLength = len(read)
             else:
                 read=ref[ind:]+ref[:end-refLen]
+                readLength = len(read)
             if genos!='':
                 read=mutate(read,ind,genos,refLen,1,readPlus,hd)
             read, quals=mkErrors(read,readLen,mx1,insD1,delD1,gQ,bQ,iQ,qual)
@@ -173,8 +177,10 @@ def readGen1(ref,cRef,refLen,readLen,genos,inter,mx1,insD1,delD1,gQ,bQ,iQ,qual,c
             end=ind-readPlus+1
             if end>=0:
                 read=cRef[end:ind+1]
+                readLength = len(read)
             else:
                 read=cRef[end:]+cRef[:ind+1]
+                readLength = len(read)
             if genos!='':
                 read=mutate(read,end,genos,refLen,2,readPlus,hd)
             read=read[::-1]
@@ -188,6 +194,7 @@ def readGen1(ref,cRef,refLen,readLen,genos,inter,mx1,insD1,delD1,gQ,bQ,iQ,qual,c
                 frag=ind+inter
                 end=ind+readPlus
             read=ref[ind:end]
+            readLength = len(read)
             if genos!='':
                 read=mutate(read,ind,genos,refLen,1,readPlus,hd)
             read,quals=mkErrors(read,readLen,mx1,insD1,delD1,gQ,bQ,iQ,qual)
@@ -200,11 +207,12 @@ def readGen1(ref,cRef,refLen,readLen,genos,inter,mx1,insD1,delD1,gQ,bQ,iQ,qual,c
             if end <0:
                 end=0
             read=cRef[end:ind+1]
+            readLength = len(read)
             if genos!='':
                 read=mutate(read,end,genos,refLen,2,readPlus,hd)
             read=read[::-1]
             read,quals=mkErrors(read,readLen,mx1,insD1,delD1,gQ,bQ,iQ,qual)
-    return read, ind, dir, quals
+    return read, ind, dir, quals, readLength
 
 def readGen2(reference,cRef,pos,dir,readLen,genos,inter,mx2,insD2,delD2,gQ,bQ,iQ,qual,circular,hd):
     """Generates the 2nd read of a random pair of reads."""
@@ -348,8 +356,11 @@ def bisect_gens(items):
         return items[bis(added_weights,rnd()*last_sum)][1]
     return choice
 
-def mutate(read,ind,gens,refLen,dir,readLn,hd):
+def mutate(read,ind,gens,refLen,dir,readLn,hd, makeMutation = error_status):
     """Adds predetermined mutations to reads."""
+
+    if makeMutation != 1:
+        return read
     d={'A':'T','T':'A','C':'G','G':'C','a':'t','t':'a','c':'g','g':'c','N':'N','n':'n'}
     if gens=={}:
         return read    
@@ -427,8 +438,13 @@ def parseModel(gzipFile,paired,readlen):
         rdLenD=cPickle.load(file)
         file.close()
         return mx,insD,delD,gQualL,bQualL,iQualL,readCount,rdLenD 
-        
-def mkErrors(read,readLen,mx,insD,delD,gQ,bQ,iQ,qual):
+
+	 
+def mkErrors(read,readLen,mx,insD,delD,gQ,bQ,iQ,qual, makeError = error_status):
+    """ To produce reads with no errors (Adds by Ali"""
+    if makeError != 1:
+    	quals = "0" * len(read)
+    	return read,quals
     """Adds random errors to read."""
     inds={'A':0,'T':1,'G':2,'C':3,'N':4,'a':0,'t':1,'g':2,'c':3,'n':4}
     pos=0
@@ -693,6 +709,8 @@ def main(argv):
             paired=True
 	elif opt =='-z':
 	    dirlog=arg
+	elif opt == '-e':
+		error_status =int(arg)
     #added by rby
     LOG_FILENAME=dirlog
     h=logging.FileHandler(LOG_FILENAME,'w')
@@ -831,11 +849,13 @@ def main(argv):
 	#added by rby
 	#get rid of whitespaces in fastq headers
 	hd_formatted = re.sub( r'\s+', '_', hd )
-	
         if not paired:
             readLen=length()
             read1,pos,dir,quals1=readGen1(ref,cRef,refLen,readLen,genDict[refFile](),readLen,mx1,insDict,delDict,gQList,bQList,iQList,qual,circular,hd)
-            head1='@'+'r'+str(count)+'_from_'+hd_formatted+'_#0/1\n'
+            #head1='@'+'r'+str(count)+'_from_'+'|'+str(pos)+'|'+hd_formatted+'_#0/1\n'
+            # Added by Ali
+            head1='@'+'r'+str(count)+'|'+str(refFile)+'|'+str(pos)+'|'+str(pos+len1-1)+'|'+'_from_'+hd_formatted+'_ln'+str(inter)+'_#0/1\n'
+
         else:
             val=random.random()
             ln1=length()
@@ -854,34 +874,38 @@ def main(argv):
                     inter=int(random.normalvariate(mean,stdv))
 
             if val > unAlign0+unAlign1:        
-                read1,pos,dir,quals1=readGen1(ref,cRef,refLen,ln1,genDict[refFile](),inter,mx1,insDict1,delDict1,gQList,bQList,iQList,qual,circular,hd)
+                read1,pos,dir,quals1, len1=readGen1(ref,cRef,refLen,ln1,genDict[refFile](),inter,mx1,insDict1,delDict1,gQList,bQList,iQList,qual,circular,hd)
                 read2,quals2=readGen2(ref,cRef,pos, dir, ln2, genDict[refFile](),inter,mx2,insDict2,delDict2,gQList,bQList,iQList,qual,circular,hd)
                 p1=pos
                 p2=pos+inter-ln2+1
             elif val > unAlign1:
-                read1,pos,dir,quals1=readGen1(ref,cRef,refLen,ln1,genDict[refFile](),inter,mx1,insDict1,delDict1,gQList,bQList,iQList,qual,circular,hd)
+                read1,pos,dir,quals1, len1=readGen1(ref,cRef,refLen,ln1,genDict[refFile](),inter,mx1,insDict1,delDict1,gQList,bQList,iQList,qual,circular,hd)
                 read2='N'*ln2
                 quals2=chr(0+qual)*ln2
                 p1=pos
                 p2='*'
             else:
-                read1,pos,dir,quals1=readGen1(ref,cRef,refLen,ln1,genDict[refFile](),inter,mx1,insDict1,delDict1,gQList,bQList,iQList,qual,circular,hd)
+                read1,pos,dir,quals1, len1=readGen1(ref,cRef,refLen,ln1,genDict[refFile](),inter,mx1,insDict1,delDict1,gQList,bQList,iQList,qual,circular,hd)
                 read2,quals2=readGen2(ref,cRef,pos, dir, ln2,genDict[refFile](),inter,mx2,insDict2,delDict2,gQList,bQList,iQList,qual,circular,hd)
                 read1='N'*ln1
                 quals1=chr(0+qual)*ln1
                 p1='*'
                 p2=pos+inter-ln2+1
-	    
-            head1='@'+'r'+str(count)+'_from_'+hd_formatted+'_ln'+str(inter)+'_#0/1\n'
-            head2='@'+'r'+str(count)+'_from_'+hd_formatted+'_ln'+str(inter)+'_#0/2\n'
+            # Modified by Ali
+                print "cRef", hd
+            head1='@'+'r'+str(count)+'|'+str(refFile)+'|'+str(pos)+'|'+str(pos+len1)+'|'+'_from_ |'+hd_formatted+'|_ln'+str(inter)+'_#0/1\n'
+            head2='@'+'r'+str(count)+'|'+str(refFile)+'|'+str(pos)+'|'+str(pos+len1)+'|'+'_from_ |'+hd_formatted+'|_ln'+str(inter)+'_#0/2\n'
         out1.write(head1)
         out1.write(read1+'\n')
         out1.write('+\n')
+	print(quals1)
         out1.write(quals1+'\n')
         if paired:
             out2.write(head2)
             out2.write(read2+'\n')
             out2.write('+\n')
+	    print("Quals 2:")
+ 	    print(quals2)
             out2.write(quals2+'\n')
         count+=1
         if count%5000==0:
