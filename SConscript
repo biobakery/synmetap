@@ -25,7 +25,7 @@ c_Read_Len			= "d"
 				  #contrained by the error model
 
 # Error ststus (1: generated reads with error, 0: no error in reads) 
-c_Error_Status = 1
+c_Error_Status = 0
 
 #Minimum contig length
 c_Min_Contig_Len		= 400

@@ -54,8 +54,7 @@ f=logging.Formatter("%(levelname)s %(asctime)s %(funcName)s %(lineno)d %(message
 h.setFormatter(f)
 rdlog.addHandler(h)
 """
-error_status = 1
- 
+error_status =''
 def getRef(refFile):
     """Returns a genome reference, and the length of that reference."""
     refDict={}
@@ -358,9 +357,11 @@ def bisect_gens(items):
 
 def mutate(read,ind,gens,refLen,dir,readLn,hd, makeMutation = error_status):
     """Adds predetermined mutations to reads."""
-
+    
+    # to avoid any mutation and error 
     if makeMutation != 1:
         return read
+
     d={'A':'T','T':'A','C':'G','G':'C','a':'t','t':'a','c':'g','g':'c','N':'N','n':'n'}
     if gens=={}:
         return read    
@@ -441,7 +442,8 @@ def parseModel(gzipFile,paired,readlen):
 
 	 
 def mkErrors(read,readLen,mx,insD,delD,gQ,bQ,iQ,qual, makeError = error_status):
-    """ To produce reads with no errors (Adds by Ali"""
+    
+    # to produce reads with no errors
     if makeError != 1:
     	quals = "0" * len(read)
     	return read,quals
@@ -635,6 +637,7 @@ def usage():
     print '      -u Mean fragment length for paired end reads. -u d for empirical.'
     print '      -s standard deviation for fragment length. Use only with -u and -p.' 
     print '      -p use only to create paired end reads.'
+    print '      -e specify genrating errors within reads 1 for yes and 0 for no.'
     print '      -z specify the path the log will be created.\n\n'
 
 def main(argv):
@@ -653,7 +656,7 @@ def main(argv):
     circular=False
     qual=''
     out=''
-
+    error_status=''
     #added by rby
     out2=''
 
@@ -891,7 +894,7 @@ def main(argv):
                 quals1=chr(0+qual)*ln1
                 p1='*'
                 p2=pos+inter-ln2+1
-            # Modified by Ali
+            # Add the reads information (location, length, and file name) to reads headers 
                 print "cRef", hd
             head1='@'+'r'+str(count)+'|'+str(refFile)+'|'+str(pos)+'|'+str(pos+len1)+'|'+'_from_ |'+hd_formatted+'|_ln'+str(inter)+'_#0/1\n'
             head2='@'+'r'+str(count)+'|'+str(refFile)+'|'+str(pos)+'|'+str(pos+len1)+'|'+'_from_ |'+hd_formatted+'|_ln'+str(inter)+'_#0/2\n'
