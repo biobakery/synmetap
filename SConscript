@@ -51,7 +51,7 @@ c_fileInModulep			= sfle.d( pE, fileDirInput, "modulep" )
 c_pathInputGenomeDir_user	= sfle.d( pE, fileDirInput, "/home/rah/Hutlab/sfle/input/synmetap/input/user_genome" ).entry_abspath( "" )
 
 #Input user-defined relative abundance files
-c_allfiles_InputAbundRef	= Glob( sfle.d( fileDirInput, "/home/rah/Hutlab/sfle/input/synmetap/input/user_genome/abunRef_stool.txt" ) )
+c_allfiles_InputAbundRef	= Glob( sfle.d( fileDirInput, "/home/rah/Hutlab/sfle/input/synmetap/input/abunRef_stool.txt" ) )
 
 #src scripts
 c_fileProgConvert		= sfle.d( pE, sfle.c_strDirSrc, "convert_ref.py" )
